@@ -1,31 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>ChitChat</title>
+<title>ChitChat Groups</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
-
-<div class="sidebar">
-<h2>Gruplarım</h2>
-<div id="groupList"></div>
+<div id="login">
+  <h2>Giriş</h2>
+  <input type="text" id="username" placeholder="Kullanıcı Adı">
+  <input type="text" id="userno" placeholder="User No">
+  <button id="loginBtn">Giriş Yap</button>
 </div>
 
-<div class="chatArea">
-<div class="chatHeader" id="chatHeader">Grup Seç</div>
-<div id="chat"></div>
-<div class="inputBox">
-<input id="msg" placeholder="Mesaj yaz...">
-<button onclick="send()">Gönder</button>
-</div>
-</div>
+<div id="chatApp" class="hidden">
+
+  <div class="sidebar">
+    <h3>Gruplar</h3>
+    <div id="groupList"></div>
+  </div>
+
+  <div class="chatArea">
+    <div id="chatHeader">Grup seç</div>
+    <div id="messages"></div>
+    <div id="messageBox" class="hidden">
+      <input type="text" id="messageInput" placeholder="Mesaj yaz...">
+      <button id="sendBtn">Gönder</button>
+    </div>
+  </div>
 
 </div>
 
-<script type="module" src="firebase.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

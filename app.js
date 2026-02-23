@@ -1,64 +1,86 @@
 import { db } from "./firebase.js";
-import { collection, addDoc, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+collection,
+addDoc,
+getDocs,
+query,
+where,
+onSnapshot,
+orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let currentRoom=null;
-let currentUser=localStorage.nickname;
-let currentUserNo=null;
+let currentUser = null;
+let currentGroupId = null;
 
-init();
+const loginBtn = document.getElementById("loginBtn");
+const groupList = document.getElementById("groupList");
+const messagesDiv = document.getElementById("messages");
+const messageBox = document.getElementById("messageBox");
+const sendBtn = document.getElementById("sendBtn");
 
-async function init(){
-const q=query(collection(db,"users"),where("nickname","==",currentUser));
-const snap=await getDocs(q);
-snap.forEach(doc=>{
-currentUserNo=doc.data().userNo;
-});
-loadGroups();
-}
+loginBtn.onclick = async () => {
+  const username = document.getElementById("username").value;
+  const userno = document.getElementById("userno").value;
+  currentUser = { username, userno };
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("chatApp").classList.remove("hidden");
+  loadGroups();
+};
 
 async function loadGroups(){
-const snap=await getDocs(collection(db,"groups"));
-document.getElementById("groupList").innerHTML="";
-snap.forEach(doc=>{
-const data=doc.data();
-if(data.members.includes(currentUserNo)){
-const div=document.createElement("div");
-div.innerText=data.name;
-div.onclick=()=>selectGroup(data.code,data.name);
-document.getElementById("groupList").appendChild(div);
-}
-});
+  const q = query(
+    collection(db,"groups"),
+    where("members","array-contains",currentUser.userno)
+  );
+  const snapshot = await getDocs(q);
+  groupList.innerHTML = "";
+  snapshot.forEach(doc=>{
+    const div = document.createElement("div");
+    div.className="groupItem";
+    div.innerText = doc.data().name;
+    div.onclick = ()=>selectGroup(doc.id,doc.data().name);
+    groupList.appendChild(div);
+  });
 }
 
-window.selectGroup=function(code,name){
-currentRoom=code;
-document.getElementById("chatHeader").innerText=name;
-loadMessages();
+function selectGroup(id,name){
+  currentGroupId = id;
+  document.getElementById("chatHeader").innerText=name;
+  messageBox.classList.remove("hidden");
+  loadMessages();
 }
 
 function loadMessages(){
-onSnapshot(collection(db,"messages"),(snapshot)=>{
-document.getElementById("chat").innerHTML="";
-snapshot.forEach(doc=>{
-const data=doc.data();
-if(data.room===currentRoom){
-const div=document.createElement("div");
-div.className="message";
-div.innerText=data.sender+": "+data.content;
-document.getElementById("chat").appendChild(div);
-}
-});
-});
+  const q = query(
+    collection(db,"groups",currentGroupId,"messages"),
+    orderBy("createdAt")
+  );
+  onSnapshot(q,(snapshot)=>{
+    messagesDiv.innerHTML="";
+    snapshot.forEach(doc=>{
+      const data = doc.data();
+      const msg = document.createElement("div");
+      msg.classList.add("message");
+      if(data.userno === currentUser.userno){
+        msg.classList.add("me");
+      }else{
+        msg.classList.add("other");
+      }
+      msg.innerText = data.username + ": " + data.text;
+      messagesDiv.appendChild(msg);
+    });
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  });
 }
 
-window.send=async function(){
-if(!currentRoom)return alert("Grup seç");
-const msg=document.getElementById("msg").value;
-await addDoc(collection(db,"messages"),{
-room:currentRoom,
-sender:currentUser,
-content:msg,
-createdAt:Date.now()
-});
-document.getElementById("msg").value="";
-}
+sendBtn.onclick = async ()=>{
+  const text = document.getElementById("messageInput").value;
+  if(!text) return;
+  await addDoc(collection(db,"groups",currentGroupId,"messages"),{
+    text:text,
+    username:currentUser.username,
+    userno:currentUser.userno,
+    createdAt:Date.now()
+  });
+  document.getElementById("messageInput").value="";
+};
