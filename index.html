@@ -1,42 +1,183 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>ChitChat</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<script>
-if (!localStorage.getItem("userNo") || !localStorage.getItem("nickname")) {
-  window.location.replace("login.html");
+* {
+  box-sizing: border-box;
 }
-</script>
 
-<div class="app">
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+  height: 100vh;
+  overflow: hidden;
+}
 
-  <div class="sidebar">
-    <h2>Gruplar</h2>
-    <div id="groupList"></div>
-  </div>
+/* LOGIN */
 
-  <div class="chat-area">
+.login-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-    <div id="chatHeader" class="chat-header">
-      Grup Seçilmedi
-    </div>
+.login-box {
+  background: #1f2937;
+  padding: 40px;
+  border-radius: 20px;
+  width: 300px;
+  text-align: center;
+}
 
-    <div id="messages" class="messages"></div>
+.login-box h1 {
+  margin-bottom: 20px;
+}
 
-    <div id="messageBox" class="message-box hidden">
-      <input type="text" id="messageInput" placeholder="Mesaj yaz...">
-      <button id="sendBtn">Gönder</button>
-    </div>
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+}
 
-  </div>
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-</div>
+.login-box button:hover {
+  opacity: 0.9;
+}
 
-<script type="module" src="app.js"></script>
-</body>
-</html>
+/* APP LAYOUT */
+
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+  width: 280px;
+  background: #111827;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  margin-top: 0;
+}
+
+.group-item {
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #1f2937;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.group-item:hover {
+  background: #374151;
+}
+
+/* CHAT AREA */
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #0f172a;
+}
+
+/* HEADER */
+
+.chat-header {
+  padding: 20px;
+  background: #1f2937;
+  font-weight: bold;
+  border-bottom: 1px solid #374151;
+}
+
+/* MESSAGES */
+
+.messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* MESSAGE BOX */
+
+.message-box {
+  display: flex;
+  padding: 15px;
+  background: #1f2937;
+  border-top: 1px solid #374151;
+}
+
+.message-box input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+}
+
+.message-box button {
+  margin-left: 10px;
+  padding: 12px 20px;
+  border-radius: 20px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.message-box button:hover {
+  opacity: 0.9;
+}
+
+/* HIDDEN */
+
+.hidden {
+  display: none !important;
+}
+
+/* BUBBLES */
+
+.bubble {
+  max-width: 60%;
+  padding: 12px 15px;
+  border-radius: 18px;
+  margin-bottom: 10px;
+  word-wrap: break-word;
+}
+
+.me {
+  align-self: flex-end;
+  background: #3b82f6;
+  text-align: right;
+}
+
+.other {
+  align-self: flex-start;
+  background: #374151;
+}
+
+.name {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
