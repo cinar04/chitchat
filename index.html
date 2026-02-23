@@ -7,6 +7,12 @@
 </head>
 <body>
 
+<script>
+if (!localStorage.getItem("userNo") || !localStorage.getItem("nickname")) {
+  window.location.replace("login.html");
+}
+</script>
+
 <div class="app">
 
   <div class="sidebar">
