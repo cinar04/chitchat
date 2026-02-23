@@ -1,0 +1,84 @@
+body{
+margin:0;
+font-family:Arial, sans-serif;
+transition:0.3s;
+}
+body.dark{
+background:linear-gradient(135deg,#0f172a,#1e293b);
+color:white;
+}
+body.light{
+background:linear-gradient(135deg,#f1f5f9,#e2e8f0);
+color:black;
+}
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:10px 20px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+}
+#chat{
+height:65vh;
+overflow:auto;
+padding:20px;
+}
+.message{
+padding:10px 15px;
+margin:10px 0;
+border-radius:15px;
+background:rgba(255,255,255,0.1);
+box-shadow:0 0 10px rgba(0,255,255,0.3);
+}
+.inputBox{
+position:fixed;
+bottom:0;
+width:100%;
+display:flex;
+background:rgba(0,0,0,0.3);
+}
+.inputBox input{
+flex:1;
+padding:15px;
+border:none;
+outline:none;
+font-size:16px;
+}
+.inputBox button{
+padding:15px;
+border:none;
+cursor:pointer;
+background:#00ffff;
+color:black;
+font-weight:bold;
+}
+.fab{
+position:fixed;
+right:20px;
+bottom:80px;
+width:60px;
+height:60px;
+border-radius:50%;
+font-size:30px;
+border:none;
+background:#00ffff;
+color:black;
+cursor:pointer;
+box-shadow:0 0 20px #00ffff;
+}
+.loginBox{
+padding:40px;
+background:rgba(255,255,255,0.1);
+border-radius:20px;
+box-shadow:0 0 20px #00ffff;
+}
+.center{
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+.hidden{
+display:none;
+}
