@@ -1,85 +1,106 @@
 import { db } from "./firebase.js";
 import {
-collection,
-addDoc,
-getDocs,
-query,
-where,
-onSnapshot,
-orderBy
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  orderBy,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const nickname = localStorage.getItem("nickname");
-const userNo = localStorage.getItem("userNo");
+const user = JSON.parse(localStorage.getItem("user"));
 
-if(!nickname){
-  window.location.href="login.html";
+if (!user) {
+  window.location.href = "login.html";
 }
 
-let currentGroupId=null;
+let currentGroupId = null;
 
-async function loadGroups(){
+// GRUPLARI YÜKLE
+async function loadGroups() {
   const q = query(
-    collection(db,"groups"),
-    where("members","array-contains",Number(userNo))
+    collection(db, "groups"),
+    where("members", "array-contains", Number(user.userNo))
   );
 
   const snap = await getDocs(q);
   const groupList = document.getElementById("groupList");
-  groupList.innerHTML="";
+  groupList.innerHTML = "";
 
-  snap.forEach(doc=>{
-    const div=document.createElement("div");
-    div.className="groupItem";
-    div.innerText=doc.data().name;
-    div.onclick=()=>selectGroup(doc.id,doc.data().name);
+  snap.forEach(doc => {
+    const data = doc.data();
+
+    const div = document.createElement("div");
+    div.className = "group-item";
+    div.innerText = data.name;
+    div.onclick = () => selectGroup(doc.id, data.name);
+
     groupList.appendChild(div);
   });
 }
 
-function selectGroup(id,name){
-  currentGroupId=id;
-  document.getElementById("chatHeader").innerText=name;
+loadGroups();
+
+// GRUP SEÇ
+function selectGroup(groupId, groupName) {
+  currentGroupId = groupId;
+
+  document.getElementById("chatHeader").innerText = groupName;
   document.getElementById("messageBox").classList.remove("hidden");
-  loadMessages();
+
+  listenMessages();
 }
 
-function loadMessages(){
-  const q=query(
-    collection(db,"groups",currentGroupId,"messages"),
-    orderBy("createdAt")
+// MESAJLARI DİNLE
+function listenMessages() {
+  const messagesRef = collection(db, "groups", currentGroupId, "messages");
+  const q = query(messagesRef, orderBy("createdAt"));
+
+  onSnapshot(q, snapshot => {
+    const messagesDiv = document.getElementById("messages");
+    messagesDiv.innerHTML = "";
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+
+      const bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+
+      if (data.userNo === user.userNo) {
+        bubble.classList.add("me");
+      } else {
+        bubble.classList.add("other");
+      }
+
+      bubble.innerHTML = `
+        <div class="name">${data.nickname}</div>
+        <div>${data.text}</div>
+      `;
+
+      messagesDiv.appendChild(bubble);
+    });
+
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  });
+}
+
+// MESAJ GÖNDER
+document.getElementById("sendBtn").addEventListener("click", async () => {
+  const input = document.getElementById("messageInput");
+  const text = input.value.trim();
+
+  if (!text || !currentGroupId) return;
+
+  await addDoc(
+    collection(db, "groups", currentGroupId, "messages"),
+    {
+      text: text,
+      nickname: user.nickname,
+      userNo: user.userNo,
+      createdAt: Date.now()
+    }
   );
 
-  onSnapshot(q,(snap)=>{
-    const messages=document.getElementById("messages");
-    messages.innerHTML="";
-    snap.forEach(doc=>{
-      const data=doc.data();
-      const div=document.createElement("div");
-      div.classList.add("message");
-      if(data.userNo==userNo){
-        div.classList.add("me");
-      }else{
-        div.classList.add("other");
-      }
-      div.innerText=data.nickname+": "+data.text;
-      messages.appendChild(div);
-    });
-  });
-}
-
-document.getElementById("sendBtn").onclick=async ()=>{
-  const text=document.getElementById("messageInput").value;
-  if(!text||!currentGroupId)return;
-
-  await addDoc(collection(db,"groups",currentGroupId,"messages"),{
-    text:text,
-    nickname:nickname,
-    userNo:Number(userNo),
-    createdAt:Date.now()
-  });
-
-  document.getElementById("messageInput").value="";
-};
-
-loadGroups();
+  input.value = "";
+});
