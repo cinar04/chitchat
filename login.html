@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
 <title>ChitChat Login</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark center">
+<body class="center">
+
 <div class="loginBox">
-<h2>ChitChat</h2>
-<input id="key" placeholder="Giriş Anahtarı">
-<button onclick="login()">Giriş</button>
+  <h2>ChitChat Giriş</h2>
+  <input type="text" id="loginKey" placeholder="Giriş Anahtarı">
+  <button id="loginBtn">Giriş Yap</button>
+  <p id="error"></p>
 </div>
-<script type="module" src="firebase.js"></script>
-<script type="module" src="app.js"></script>
+
+<script type="module" src="login.js"></script>
 </body>
 </html>

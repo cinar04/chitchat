@@ -1,56 +1,52 @@
 body{
   margin:0;
   font-family:Arial;
-  background:linear-gradient(135deg,#0f172a,#1e293b);
+  background:#0f172a;
   color:white;
-  height:100vh;
+}
+
+.center{
   display:flex;
   justify-content:center;
   align-items:center;
+  height:100vh;
 }
 
-.hidden{display:none;}
-
-#login{
+.loginBox{
   background:#1e293b;
   padding:30px;
   border-radius:15px;
-  box-shadow:0 0 20px #00f2ff44;
   text-align:center;
+  box-shadow:0 0 20px #00ffff33;
 }
 
-#login input{
+.loginBox input{
   display:block;
-  margin:10px auto;
+  margin:15px auto;
   padding:10px;
   width:200px;
   border:none;
   border-radius:8px;
 }
 
-#login button{
+.loginBox button{
   padding:10px 20px;
-  background:#00f2ff;
   border:none;
   border-radius:8px;
+  background:#00ffff;
   cursor:pointer;
 }
 
-#chatApp{
-  width:900px;
-  height:600px;
+.container{
   display:flex;
-  background:#0f172a;
-  border-radius:20px;
-  overflow:hidden;
-  box-shadow:0 0 40px #00f2ff22;
+  height:100vh;
 }
 
 .sidebar{
   width:250px;
   background:#1e293b;
   padding:15px;
-  overflow-y:auto;
+  overflow:auto;
 }
 
 .groupItem{
@@ -59,11 +55,10 @@ body{
   margin-bottom:10px;
   border-radius:10px;
   cursor:pointer;
-  transition:0.2s;
 }
 
 .groupItem:hover{
-  background:#00f2ff33;
+  background:#00ffff33;
 }
 
 .chatArea{
@@ -75,34 +70,32 @@ body{
 #chatHeader{
   padding:15px;
   background:#1e293b;
-  font-weight:bold;
 }
 
 #messages{
   flex:1;
   padding:15px;
-  overflow-y:auto;
+  overflow:auto;
   display:flex;
   flex-direction:column;
 }
 
 .message{
-  margin-bottom:10px;
   padding:8px 12px;
   border-radius:15px;
+  margin-bottom:10px;
   max-width:60%;
-  word-wrap:break-word;
 }
 
 .me{
-  background:#00f2ff;
-  color:black;
   align-self:flex-end;
+  background:#00ffff;
+  color:black;
 }
 
 .other{
-  background:#334155;
   align-self:flex-start;
+  background:#334155;
 }
 
 #messageBox{
@@ -123,6 +116,8 @@ body{
   padding:10px 15px;
   border:none;
   border-radius:8px;
-  background:#00f2ff;
+  background:#00ffff;
   cursor:pointer;
 }
+
+.hidden{display:none;}
