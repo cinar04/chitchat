@@ -22,10 +22,10 @@ let unsubscribe = null;
 const groupList = document.getElementById("groupList");
 const chatHeader = document.getElementById("chatHeader");
 const messagesDiv = document.getElementById("messages");
-const messageBox = document.getElementById("messageBox");
 const sendBtn = document.getElementById("sendBtn");
 const messageInput = document.getElementById("messageInput");
 
+// GRUPLARI YÜKLE
 async function loadGroups() {
   const q = query(
     collection(db, "groups"),
@@ -59,9 +59,6 @@ function selectGroup(groupId, groupName) {
   currentGroupId = groupId;
   chatHeader.textContent = groupName;
 
-  messageBox.classList.remove("hidden");   // 🔥 BURASI KRİTİK
-  messagesDiv.innerHTML = "";
-
   if (unsubscribe) unsubscribe();
 
   const messagesRef = collection(db, "groups", groupId, "messages");
@@ -94,11 +91,15 @@ function selectGroup(groupId, groupName) {
   });
 }
 
+// MESAJ GÖNDER
 sendBtn.addEventListener("click", async () => {
   const text = messageInput.value.trim();
 
   if (!text) return;
-  if (!currentGroupId) return;
+  if (!currentGroupId) {
+    alert("Önce grup seç");
+    return;
+  }
 
   await addDoc(
     collection(db, "groups", currentGroupId, "messages"),
@@ -113,6 +114,7 @@ sendBtn.addEventListener("click", async () => {
   messageInput.value = "";
 });
 
+// ENTER ile gönder
 messageInput.addEventListener("keypress", e => {
   if (e.key === "Enter") {
     sendBtn.click();
