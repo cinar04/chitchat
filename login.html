@@ -47,11 +47,10 @@ btn.addEventListener("click", async () => {
   const doc = snap.docs[0];
   const userData = doc.data();
 
-  // SADECE GEREKLİLERİ KAYDET
-  localStorage.setItem("userNo", userData.userNo);
+  localStorage.setItem("userNo", String(userData.userNo));
   localStorage.setItem("nickname", userData.nickname);
 
-  window.location.href = "index.html";
+  window.location.replace("index.html");
 });
 </script>
 
