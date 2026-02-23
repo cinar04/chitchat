@@ -9,9 +9,11 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const user = JSON.parse(localStorage.getItem("user"));
+const userNo = localStorage.getItem("userNo");
+const nickname = localStorage.getItem("nickname");
 
-if (!user) {
+// LOGIN LOOP FIX
+if (!userNo || !nickname) {
   window.location.href = "login.html";
 }
 
@@ -21,7 +23,7 @@ let currentGroupId = null;
 async function loadGroups() {
   const q = query(
     collection(db, "groups"),
-    where("members", "array-contains", Number(user.userNo))
+    where("members", "array-contains", Number(userNo))
   );
 
   const snap = await getDocs(q);
@@ -67,7 +69,7 @@ function listenMessages() {
       const bubble = document.createElement("div");
       bubble.classList.add("bubble");
 
-      if (data.userNo === user.userNo) {
+      if (data.userNo == userNo) {
         bubble.classList.add("me");
       } else {
         bubble.classList.add("other");
@@ -96,8 +98,8 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
     collection(db, "groups", currentGroupId, "messages"),
     {
       text: text,
-      nickname: user.nickname,
-      userNo: user.userNo,
+      nickname: nickname,
+      userNo: Number(userNo),
       createdAt: Date.now()
     }
   );
