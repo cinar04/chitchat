@@ -17,6 +17,14 @@ if (!userNo || !nickname) {
 }
 
 let currentGroupId = null;
+let unsubscribe = null;
+
+const groupList = document.getElementById("groupList");
+const chatHeader = document.getElementById("chatHeader");
+const messagesDiv = document.getElementById("messages");
+const messageBox = document.getElementById("messageBox");
+const sendBtn = document.getElementById("sendBtn");
+const messageInput = document.getElementById("messageInput");
 
 async function loadGroups() {
   const q = query(
@@ -25,45 +33,48 @@ async function loadGroups() {
   );
 
   const snap = await getDocs(q);
-  const groupList = document.getElementById("groupList");
   groupList.innerHTML = "";
+
+  if (snap.empty) {
+    groupList.innerHTML = "<div style='opacity:0.6'>Grup yok</div>";
+    return;
+  }
 
   snap.forEach(doc => {
     const data = doc.data();
 
     const div = document.createElement("div");
     div.className = "group-item";
-    div.innerText = data.name;
-    div.onclick = () => selectGroup(doc.id, data.name);
+    div.textContent = data.name;
+
+    div.addEventListener("click", () => {
+      selectGroup(doc.id, data.name);
+    });
 
     groupList.appendChild(div);
   });
 }
 
-loadGroups();
-
 function selectGroup(groupId, groupName) {
   currentGroupId = groupId;
+  chatHeader.textContent = groupName;
 
-  document.getElementById("chatHeader").innerText = groupName;
-  document.getElementById("messageBox").classList.remove("hidden");
+  messageBox.classList.remove("hidden");   // 🔥 BURASI KRİTİK
+  messagesDiv.innerHTML = "";
 
-  listenMessages();
-}
+  if (unsubscribe) unsubscribe();
 
-function listenMessages() {
-  const messagesRef = collection(db, "groups", currentGroupId, "messages");
+  const messagesRef = collection(db, "groups", groupId, "messages");
   const q = query(messagesRef, orderBy("createdAt"));
 
-  onSnapshot(q, snapshot => {
-    const messagesDiv = document.getElementById("messages");
+  unsubscribe = onSnapshot(q, snapshot => {
     messagesDiv.innerHTML = "";
 
     snapshot.forEach(doc => {
       const data = doc.data();
 
       const bubble = document.createElement("div");
-      bubble.classList.add("bubble");
+      bubble.className = "bubble";
 
       if (String(data.userNo) === String(userNo)) {
         bubble.classList.add("me");
@@ -83,11 +94,11 @@ function listenMessages() {
   });
 }
 
-document.getElementById("sendBtn").addEventListener("click", async () => {
-  const input = document.getElementById("messageInput");
-  const text = input.value.trim();
+sendBtn.addEventListener("click", async () => {
+  const text = messageInput.value.trim();
 
-  if (!text || !currentGroupId) return;
+  if (!text) return;
+  if (!currentGroupId) return;
 
   await addDoc(
     collection(db, "groups", currentGroupId, "messages"),
@@ -99,5 +110,13 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
     }
   );
 
-  input.value = "";
+  messageInput.value = "";
 });
+
+messageInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    sendBtn.click();
+  }
+});
+
+loadGroups();
