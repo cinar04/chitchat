@@ -1,26 +1,32 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ChitChat</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>ChitChat</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
+<div class="app">
 
   <div class="sidebar">
-    <h3>Gruplarım</h3>
+    <h2>Gruplar</h2>
     <div id="groupList"></div>
   </div>
 
-  <div class="chatArea">
-    <div id="chatHeader">Grup Seç</div>
-    <div id="messages"></div>
-    <div id="messageBox" class="hidden">
+  <div class="chat-area">
+
+    <div id="chatHeader" class="chat-header">
+      Grup Seçilmedi
+    </div>
+
+    <div id="messages" class="messages"></div>
+
+    <div id="messageBox" class="message-box hidden">
       <input type="text" id="messageInput" placeholder="Mesaj yaz...">
       <button id="sendBtn">Gönder</button>
     </div>
+
   </div>
 
 </div>
