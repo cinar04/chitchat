@@ -2,24 +2,31 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ChitChat</title>
+<title>ChitChat Groups</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark">
-<div class="topbar">
-<h1>ChitChat</h1>
-<button onclick="toggleTheme()">🌗</button>
+<body>
+
+<div class="container">
+
+<div class="sidebar">
+<h2>Gruplar</h2>
+<div id="groupList"></div>
+<button onclick="createGroup()">+ Grup Oluştur</button>
+<button onclick="joinGroup()">Gruba Katıl</button>
 </div>
+
+<div class="chatArea">
+<div class="chatHeader" id="chatHeader">Grup Seç</div>
 <div id="chat"></div>
 <div class="inputBox">
 <input id="msg" placeholder="Mesaj yaz...">
 <button onclick="send()">Gönder</button>
 </div>
-<button class="fab" onclick="toggleMenu()">+</button>
-<div id="menu" class="hidden">
-<button onclick="createGroup()">Grup Oluştur</button>
-<button onclick="joinGroup()">Gruba Katıl</button>
 </div>
+
+</div>
+
 <script type="module" src="firebase.js"></script>
 <script type="module" src="app.js"></script>
 </body>
