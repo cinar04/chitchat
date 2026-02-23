@@ -1,28 +1,20 @@
 import { db } from "./firebase.js";
-import { collection, addDoc, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let currentRoom="global";
+let currentRoom=null;
+let currentUser=localStorage.nickname;
 
-window.login=async function(){
-const key=document.getElementById("key").value;
-const q=query(collection(db,"users"),where("loginKey","==",key));
-const snap=await getDocs(q);
-if(snap.empty){alert("Yanlış Anahtar");return;}
+loadGroups();
+
+async function loadGroups(){
+const snap=await getDocs(collection(db,"groups"));
 snap.forEach(doc=>{
-localStorage.nickname=doc.data().nickname;
+const data=doc.data();
+const div=document.createElement("div");
+div.innerText=data.name+" ("+data.code+")";
+div.onclick=()=>selectGroup(data.code,data.name);
+document.getElementById("groupList").appendChild(div);
 });
-window.location="index.html";
-}
-
-window.send=async function(){
-const msg=document.getElementById("msg").value;
-await addDoc(collection(db,"messages"),{
-room:currentRoom,
-sender:localStorage.nickname,
-content:msg,
-createdAt:Date.now()
-});
-document.getElementById("msg").value="";
 }
 
 window.createGroup=async function(){
@@ -30,25 +22,20 @@ const name=prompt("Grup adı?");
 const code=Math.floor(100000+Math.random()*900000).toString();
 await addDoc(collection(db,"groups"),{
 name:name,
-code:code,
-members:[localStorage.nickname]
+code:code
 });
 alert("Grup kodu: "+code);
+loadGroups();
 }
 
 window.joinGroup=function(){
-const code=prompt("Kod gir");
+alert("Gruba katılmak için kodu bilmen yeterli. Listede varsa tıkla.");
+}
+
+window.selectGroup=function(code,name){
 currentRoom=code;
+document.getElementById("chatHeader").innerText=name;
 loadMessages();
-}
-
-window.toggleMenu=function(){
-document.getElementById("menu").classList.toggle("hidden");
-}
-
-window.toggleTheme=function(){
-document.body.classList.toggle("dark");
-document.body.classList.toggle("light");
 }
 
 function loadMessages(){
@@ -66,6 +53,14 @@ document.getElementById("chat").appendChild(div);
 });
 }
 
-if(window.location.pathname.includes("index.html")){
-loadMessages();
+window.send=async function(){
+if(!currentRoom)return alert("Önce grup seç");
+const msg=document.getElementById("msg").value;
+await addDoc(collection(db,"messages"),{
+room:currentRoom,
+sender:currentUser,
+content:msg,
+createdAt:Date.now()
+});
+document.getElementById("msg").value="";
 }
