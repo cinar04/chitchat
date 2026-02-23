@@ -11,53 +11,6 @@ body {
   overflow: hidden;
 }
 
-/* LOGIN */
-
-.login-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.login-box {
-  background: #1f2937;
-  padding: 40px;
-  border-radius: 20px;
-  width: 300px;
-  text-align: center;
-}
-
-.login-box h1 {
-  margin-bottom: 20px;
-}
-
-.login-box input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border-radius: 20px;
-  border: none;
-  outline: none;
-}
-
-.login-box button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 20px;
-  border: none;
-  background: #3b82f6;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.login-box button:hover {
-  opacity: 0.9;
-}
-
-/* APP LAYOUT */
-
 .app {
   display: flex;
   height: 100vh;
@@ -89,7 +42,7 @@ body {
   background: #374151;
 }
 
-/* CHAT AREA */
+/* CHAT */
 
 .chat-area {
   flex: 1;
@@ -98,16 +51,12 @@ body {
   background: #0f172a;
 }
 
-/* HEADER */
-
 .chat-header {
   padding: 20px;
   background: #1f2937;
-  font-weight: bold;
   border-bottom: 1px solid #374151;
+  font-weight: bold;
 }
-
-/* MESSAGES */
 
 .messages {
   flex: 1;
@@ -117,7 +66,7 @@ body {
   flex-direction: column;
 }
 
-/* MESSAGE BOX */
+/* MESAJ KUTUSU */
 
 .message-box {
   display: flex;
@@ -149,13 +98,7 @@ body {
   opacity: 0.9;
 }
 
-/* HIDDEN */
-
-.hidden {
-  display: none !important;
-}
-
-/* BUBBLES */
+/* BUBBLE */
 
 .bubble {
   max-width: 60%;
