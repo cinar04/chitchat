@@ -12,14 +12,12 @@ import {
 const userNo = localStorage.getItem("userNo");
 const nickname = localStorage.getItem("nickname");
 
-// LOGIN LOOP FIX
 if (!userNo || !nickname) {
-  window.location.href = "login.html";
+  window.location.replace("login.html");
 }
 
 let currentGroupId = null;
 
-// GRUPLARI YÜKLE
 async function loadGroups() {
   const q = query(
     collection(db, "groups"),
@@ -44,7 +42,6 @@ async function loadGroups() {
 
 loadGroups();
 
-// GRUP SEÇ
 function selectGroup(groupId, groupName) {
   currentGroupId = groupId;
 
@@ -54,7 +51,6 @@ function selectGroup(groupId, groupName) {
   listenMessages();
 }
 
-// MESAJLARI DİNLE
 function listenMessages() {
   const messagesRef = collection(db, "groups", currentGroupId, "messages");
   const q = query(messagesRef, orderBy("createdAt"));
@@ -69,7 +65,7 @@ function listenMessages() {
       const bubble = document.createElement("div");
       bubble.classList.add("bubble");
 
-      if (data.userNo == userNo) {
+      if (String(data.userNo) === String(userNo)) {
         bubble.classList.add("me");
       } else {
         bubble.classList.add("other");
@@ -87,7 +83,6 @@ function listenMessages() {
   });
 }
 
-// MESAJ GÖNDER
 document.getElementById("sendBtn").addEventListener("click", async () => {
   const input = document.getElementById("messageInput");
   const text = input.value.trim();
