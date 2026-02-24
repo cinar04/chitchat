@@ -1,7 +1,7 @@
 
-import { auth, db } from "./firebase.js";
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "./firebase.js";
+import { collection, query, where, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const loginBtn = document.getElementById("loginBtn");
 const errorMsg = document.getElementById("errorMsg");
@@ -19,20 +19,29 @@ loginBtn.addEventListener("click", async () => {
   }
 
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
     const q = query(
       collection(db, "users"),
-      where("email", "==", email)
+      where("email", "==", email),
+      where("password", "==", password)
     );
 
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      errorMsg.textContent = "Firestore kullanıcı bulunamadı!";
+      errorMsg.textContent = "Email veya şifre yanlış!";
       return;
     }
 
     const userData = snap.docs[0].data();
 
-    localStorage.setItem("nickname", userData.nickname
+    localStorage.setItem("nickname", userData.nickname);
+    localStorage.setItem("userNo", userData.userNo);
+
+    window.location.href = "index.html";
+
+  } catch (error) {
+    errorMsg.textContent = error.message;
+  }
+
+});

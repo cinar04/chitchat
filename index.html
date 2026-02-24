@@ -1,30 +1,27 @@
+
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ChitChat</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>ChitChat</title>
 </head>
 <body>
 
-<div class="container">
+<h2>Ana Sayfa</h2>
 
-  <div class="sidebar">
-    <h3>Gruplarım</h3>
-    <div id="groupList"></div>
-  </div>
+<p id="info"></p>
 
-  <div class="chatArea">
-    <div id="chatHeader">Grup Seç</div>
-    <div id="messages"></div>
-    <div id="messageBox" class="hidden">
-      <input type="text" id="messageInput" placeholder="Mesaj yaz...">
-      <button id="sendBtn">Gönder</button>
-    </div>
-  </div>
+<script>
+const nickname = localStorage.getItem("nickname");
+const userNo = localStorage.getItem("userNo");
 
-</div>
+if (!userNo) {
+  window.location.href = "login.html";
+}
 
-<script type="module" src="app.js"></script>
+document.getElementById("info").innerText =
+  "Hoşgeldin " + nickname + " | userNo: " + userNo;
+</script>
+
 </body>
 </html>
