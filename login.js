@@ -1,26 +1,27 @@
+
 import { auth, db } from "./firebase.js";
-import { signInWithEmailAndPassword }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { collection, query, where, getDocs }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const loginBtn = document.getElementById("loginBtn");
+const errorMsg = document.getElementById("errorMsg");
 
-window.login = async function () {
+loginBtn.addEventListener("click", async () => {
 
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
+  errorMsg.textContent = "";
+
   if (!email || !password) {
-    alert("Email ve şifre gir");
+    errorMsg.textContent = "Email ve şifre gir";
     return;
   }
 
   try {
 
-    // Firebase Auth giriş
     await signInWithEmailAndPassword(auth, email, password);
 
-    // Firestore'da kullanıcıyı email ile bul
     const q = query(
       collection(db, "users"),
       where("email", "==", email)
@@ -29,19 +30,19 @@ window.login = async function () {
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      alert("Firestore'da kullanıcı bulunamadı");
+      errorMsg.textContent = "Firestore'da kullanıcı yok";
       return;
     }
 
     const userData = snap.docs[0].data();
 
-    // loginKey adı değişmiyor!
     localStorage.setItem("nickname", userData.nickname);
     localStorage.setItem("userNo", userData.loginKey);
 
     window.location.replace("index.html");
 
   } catch (error) {
-    alert("Giriş başarısız: " + error.message);
+    errorMsg.textContent = error.message;
   }
-};
+
+});

@@ -1,123 +1,44 @@
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f172a;
-  color:white;
+
+.login-body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1f2937, #2563eb);
 }
 
-.center{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 
-.loginBox{
-  background:#1e293b;
-  padding:30px;
-  border-radius:15px;
-  text-align:center;
-  box-shadow:0 0 20px #00ffff33;
+.login-box h1 {
+  margin-bottom: 25px;
 }
 
-.loginBox input{
-  display:block;
-  margin:15px auto;
-  padding:10px;
-  width:200px;
-  border:none;
-  border-radius:8px;
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
 }
 
-.loginBox button{
-  padding:10px 20px;
-  border:none;
-  border-radius:8px;
-  background:#00ffff;
-  cursor:pointer;
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
 }
 
-.container{
-  display:flex;
-  height:100vh;
+.login-box button:hover {
+  background: #1e40af;
 }
-
-.sidebar{
-  width:250px;
-  background:#1e293b;
-  padding:15px;
-  overflow:auto;
-}
-
-.groupItem{
-  padding:10px;
-  background:#0f172a;
-  margin-bottom:10px;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-.groupItem:hover{
-  background:#00ffff33;
-}
-
-.chatArea{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-}
-
-#chatHeader{
-  padding:15px;
-  background:#1e293b;
-}
-
-#messages{
-  flex:1;
-  padding:15px;
-  overflow:auto;
-  display:flex;
-  flex-direction:column;
-}
-
-.message{
-  padding:8px 12px;
-  border-radius:15px;
-  margin-bottom:10px;
-  max-width:60%;
-}
-
-.me{
-  align-self:flex-end;
-  background:#00ffff;
-  color:black;
-}
-
-.other{
-  align-self:flex-start;
-  background:#334155;
-}
-
-#messageBox{
-  display:flex;
-  padding:10px;
-  background:#1e293b;
-}
-
-#messageInput{
-  flex:1;
-  padding:10px;
-  border:none;
-  border-radius:8px;
-}
-
-#sendBtn{
-  margin-left:10px;
-  padding:10px 15px;
-  border:none;
-  border-radius:8px;
-  background:#00ffff;
-  cursor:pointer;
-}
-
-.hidden{display:none;}

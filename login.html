@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Giriş</title>
+  <title>ChitChat Giriş</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-body">
@@ -13,7 +13,9 @@
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Şifre">
 
-    <button onclick="login()">Giriş Yap</button>
+    <button id="loginBtn">Giriş Yap</button>
+
+    <p id="errorMsg" style="color:red;margin-top:10px;"></p>
   </div>
 
   <script type="module" src="login.js"></script>
