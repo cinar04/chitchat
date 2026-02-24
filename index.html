@@ -1,39 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>ChitChat</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>ChitChat</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<script>
-if (!localStorage.getItem("userNo") || !localStorage.getItem("nickname")) {
-  window.location.replace("login.html");
-}
-</script>
-
-<div class="app">
+<div class="container">
 
   <div class="sidebar">
-    <h2>Gruplar</h2>
+    <h3>Gruplarım</h3>
     <div id="groupList"></div>
   </div>
 
-  <div class="chat-area">
-
-    <div id="chatHeader" class="chat-header">
-      Grup Seçilmedi
-    </div>
-
-    <div id="messages" class="messages"></div>
-
-    <!-- ARTIK HIDDEN YOK -->
-    <div id="messageBox" class="message-box">
+  <div class="chatArea">
+    <div id="chatHeader">Grup Seç</div>
+    <div id="messages"></div>
+    <div id="messageBox" class="hidden">
       <input type="text" id="messageInput" placeholder="Mesaj yaz...">
       <button id="sendBtn">Gönder</button>
     </div>
-
   </div>
 
 </div>

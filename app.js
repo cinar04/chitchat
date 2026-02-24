@@ -1,124 +1,85 @@
 import { db } from "./firebase.js";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-  orderBy,
-  onSnapshot
+collection,
+addDoc,
+getDocs,
+query,
+where,
+onSnapshot,
+orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const userNo = localStorage.getItem("userNo");
 const nickname = localStorage.getItem("nickname");
+const userNo = localStorage.getItem("userNo");
 
-if (!userNo || !nickname) {
-  window.location.replace("login.html");
+if(!nickname){
+  window.location.href="login.html";
 }
 
-let currentGroupId = null;
-let unsubscribe = null;
+let currentGroupId=null;
 
-const groupList = document.getElementById("groupList");
-const chatHeader = document.getElementById("chatHeader");
-const messagesDiv = document.getElementById("messages");
-const sendBtn = document.getElementById("sendBtn");
-const messageInput = document.getElementById("messageInput");
-
-// GRUPLARI YÜKLE
-async function loadGroups() {
+async function loadGroups(){
   const q = query(
-    collection(db, "groups"),
-    where("members", "array-contains", Number(userNo))
+    collection(db,"groups"),
+    where("members","array-contains",Number(userNo))
   );
 
   const snap = await getDocs(q);
-  groupList.innerHTML = "";
+  const groupList = document.getElementById("groupList");
+  groupList.innerHTML="";
 
-  if (snap.empty) {
-    groupList.innerHTML = "<div style='opacity:0.6'>Grup yok</div>";
-    return;
-  }
-
-  snap.forEach(doc => {
-    const data = doc.data();
-
-    const div = document.createElement("div");
-    div.className = "group-item";
-    div.textContent = data.name;
-
-    div.addEventListener("click", () => {
-      selectGroup(doc.id, data.name);
-    });
-
+  snap.forEach(doc=>{
+    const div=document.createElement("div");
+    div.className="groupItem";
+    div.innerText=doc.data().name;
+    div.onclick=()=>selectGroup(doc.id,doc.data().name);
     groupList.appendChild(div);
   });
 }
 
-function selectGroup(groupId, groupName) {
-  currentGroupId = groupId;
-  chatHeader.textContent = groupName;
+function selectGroup(id,name){
+  currentGroupId=id;
+  document.getElementById("chatHeader").innerText=name;
+  document.getElementById("messageBox").classList.remove("hidden");
+  loadMessages();
+}
 
-  if (unsubscribe) unsubscribe();
+function loadMessages(){
+  const q=query(
+    collection(db,"groups",currentGroupId,"messages"),
+    orderBy("createdAt")
+  );
 
-  const messagesRef = collection(db, "groups", groupId, "messages");
-  const q = query(messagesRef, orderBy("createdAt"));
-
-  unsubscribe = onSnapshot(q, snapshot => {
-    messagesDiv.innerHTML = "";
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-
-      if (String(data.userNo) === String(userNo)) {
-        bubble.classList.add("me");
-      } else {
-        bubble.classList.add("other");
+  onSnapshot(q,(snap)=>{
+    const messages=document.getElementById("messages");
+    messages.innerHTML="";
+    snap.forEach(doc=>{
+      const data=doc.data();
+      const div=document.createElement("div");
+      div.classList.add("message");
+      if(data.userNo==userNo){
+        div.classList.add("me");
+      }else{
+        div.classList.add("other");
       }
-
-      bubble.innerHTML = `
-        <div class="name">${data.nickname}</div>
-        <div>${data.text}</div>
-      `;
-
-      messagesDiv.appendChild(bubble);
+      div.innerText=data.nickname+": "+data.text;
+      messages.appendChild(div);
     });
-
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 }
 
-// MESAJ GÖNDER
-sendBtn.addEventListener("click", async () => {
-  const text = messageInput.value.trim();
+document.getElementById("sendBtn").onclick=async ()=>{
+  const text=document.getElementById("messageInput").value;
+  if(!text||!currentGroupId)return;
 
-  if (!text) return;
-  if (!currentGroupId) {
-    alert("Önce grup seç");
-    return;
-  }
+  await addDoc(collection(db,"groups",currentGroupId,"messages"),{
+    text:text,
+    nickname:nickname,
+    userNo:Number(userNo),
+    createdAt:Date.now()
+  });
 
-  await addDoc(
-    collection(db, "groups", currentGroupId, "messages"),
-    {
-      text: text,
-      nickname: nickname,
-      userNo: Number(userNo),
-      createdAt: Date.now()
-    }
-  );
-
-  messageInput.value = "";
-});
-
-// ENTER ile gönder
-messageInput.addEventListener("keypress", e => {
-  if (e.key === "Enter") {
-    sendBtn.click();
-  }
-});
+  document.getElementById("messageInput").value="";
+};
 
 loadGroups();
