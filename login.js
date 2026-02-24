@@ -14,13 +14,12 @@ loginBtn.addEventListener("click", async () => {
   errorMsg.textContent = "";
 
   if (!email || !password) {
-    errorMsg.textContent = "Email ve şifre gir";
+    errorMsg.textContent = "Email ve şifre gir!";
     return;
   }
 
   try {
-
-    await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
     const q = query(
       collection(db, "users"),
@@ -30,19 +29,10 @@ loginBtn.addEventListener("click", async () => {
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      errorMsg.textContent = "Firestore'da kullanıcı yok";
+      errorMsg.textContent = "Firestore kullanıcı bulunamadı!";
       return;
     }
 
     const userData = snap.docs[0].data();
 
-    localStorage.setItem("nickname", userData.nickname);
-    localStorage.setItem("userNo", userData.loginKey);
-
-    window.location.replace("index.html");
-
-  } catch (error) {
-    errorMsg.textContent = error.message;
-  }
-
-});
+    localStorage.setItem("nickname", userData.nickname
