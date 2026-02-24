@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ChitChat Login</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Giriş</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="center">
+<body class="login-body">
 
-<div class="loginBox">
-  <h2>ChitChat Giriş</h2>
-  <input type="text" id="loginKey" placeholder="Giriş Anahtarı">
-  <button id="loginBtn">Giriş Yap</button>
-  <p id="error"></p>
-</div>
+  <div class="login-box">
+    <h1>ChitChat</h1>
 
-<script type="module" src="login.js"></script>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Şifre">
+
+    <button onclick="login()">Giriş Yap</button>
+  </div>
+
+  <script type="module" src="login.js"></script>
 </body>
 </html>
