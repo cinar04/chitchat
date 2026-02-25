@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
   <title>ChitChat</title>
@@ -22,10 +22,9 @@ if (!localStorage.getItem("userNo") || !localStorage.getItem("nickname")) {
 
   <div class="chat-area">
 
-    <button class="logout-btn" onclick="logout()">Oturumu Kapat</button>
-
     <div id="chatHeader" class="chat-header">
-      Grup Seçilmedi
+      <span id="groupTitle">Grup Seçilmedi</span>
+      <button id="logoutBtn">Log Out</button>
     </div>
 
     <div id="messages" class="messages"></div>
@@ -40,5 +39,16 @@ if (!localStorage.getItem("userNo") || !localStorage.getItem("nickname")) {
 </div>
 
 <script type="module" src="app.js"></script>
+
+<script>
+const logoutBtn = document.getElementById("logoutBtn");
+
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("userNo");
+  localStorage.removeItem("nickname");
+  window.location.href = "login.html";
+});
+</script>
+
 </body>
 </html>
