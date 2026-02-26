@@ -1,4 +1,8 @@
-self.addEventListener('push',function(e){
-const data=e.data.json();
-self.registration.showNotification(data.title,{body:data.body});
+self.addEventListener("install", () => self.skipWaiting());
+
+self.addEventListener("notificationclick", function(event) {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow("index.html")
+  );
 });
