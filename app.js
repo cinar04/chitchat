@@ -3,8 +3,15 @@ import { collection, query, where, getDocs, addDoc, orderBy, onSnapshot } from "
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
-if (!window.matchMedia('(display-mode: standalone)').matches) {
-alert("Lütfen ana ekrana ekleyin.");
+const isStandalone =
+  window.matchMedia('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true;
+
+const alreadyWarned = localStorage.getItem("pwaWarned");
+
+if (!isStandalone && !alreadyWarned) {
+  alert("Daha iyi deneyim için uygulamayı ana ekrana ekleyin.");
+  localStorage.setItem("pwaWarned", "true");
 }
 
 let currentGroupId=null;
