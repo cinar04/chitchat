@@ -1,34 +1,52 @@
 import { db } from "./firebase.js";
-import { collection, query, where, getDocs, addDoc, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, where, getDocs, addDoc, orderBy, onSnapshot } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-
-const isStandalone =
-  window.matchMedia('(display-mode: standalone)').matches ||
-  window.navigator.standalone === true;
-
-const alreadyWarned = localStorage.getItem("pwaWarned");
-
-if (!isStandalone && !alreadyWarned) {
-  alert("Daha iyi deneyim için uygulamayı ana ekrana ekleyin.");
-  localStorage.setItem("pwaWarned", "true");
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
 }
 
-let currentGroupId=null;
-let unsubscribe=null;
+const isStandalone =
+  window.matchMedia("(display-mode: standalone)").matches ||
+  window.navigator.standalone === true;
 
-const groupList=document.getElementById("groupList");
-const groupTitle=document.getElementById("groupTitle");
-const messagesDiv=document.getElementById("messages");
-const sendBtn=document.getElementById("sendBtn");
-const messageInput=document.getElementById("messageInput");
-const mobileMenu=document.getElementById("mobileMenu");
-const app=document.getElementById("app");
-const backBtn=document.getElementById("backBtn");
-const logoutBtn=document.getElementById("logoutBtn");
+const notificationPrompt = document.getElementById("notificationPrompt");
+const enableBtn = document.getElementById("enableNotifications");
 
-logoutBtn.onclick=()=>{localStorage.clear();location.href="login.html";};
-backBtn.onclick=()=>{app.style.display="none";mobileMenu.style.display="flex";};
+if (isStandalone && Notification.permission === "default") {
+  notificationPrompt.style.display = "block";
+}
+
+enableBtn?.addEventListener("click", async () => {
+  const permission = await Notification.requestPermission();
+  if (permission === "granted") {
+    notificationPrompt.style.display = "none";
+    localStorage.setItem("notifEnabled","true");
+  }
+});
+
+let currentGroupId = null;
+let unsubscribe = null;
+
+const groupList = document.getElementById("groupList");
+const groupTitle = document.getElementById("groupTitle");
+const messagesDiv = document.getElementById("messages");
+const sendBtn = document.getElementById("sendBtn");
+const messageInput = document.getElementById("messageInput");
+const mobileMenu = document.getElementById("mobileMenu");
+const app = document.getElementById("app");
+const backBtn = document.getElementById("backBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+logoutBtn.onclick = () => {
+  localStorage.clear();
+  location.href = "login.html";
+};
+
+backBtn.onclick = () => {
+  app.style.display="none";
+  mobileMenu.style.display="flex";
+};
 
 async function loadGroups(){
 const q=query(collection(db,"groups"),where("members","array-contains",Number(localStorage.getItem("userNo"))));
@@ -56,6 +74,21 @@ groupTitle.textContent=name;
 if(unsubscribe)unsubscribe();
 const q=query(collection(db,"groups",groupId,"messages"),orderBy("createdAt"));
 unsubscribe=onSnapshot(q,snap=>{
+snap.docChanges().forEach(change=>{
+if(change.type==="added"){
+const data=change.doc.data();
+if(String(data.userNo)!==String(localStorage.getItem("userNo"))){
+if(Notification.permission==="granted"){
+navigator.serviceWorker.getRegistration().then(reg=>{
+reg.showNotification(data.nickname,{
+body:data.text,
+icon:"icon-192.png"
+});
+});
+}
+}
+}
+});
 messagesDiv.innerHTML="";
 snap.forEach(doc=>{
 const data=doc.data();
