@@ -1,146 +1,198 @@
-import { db } from "./firebase.js";
+import { db } from "./firebase.js"
 import {
   collection,
   query,
   where,
   getDocs,
   addDoc,
+  onSnapshot,
   orderBy,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  updateDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
 
-const userNo = localStorage.getItem("userNo");
-const nickname = localStorage.getItem("nickname");
+const email = localStorage.getItem("email")
 
-if (!userNo || !nickname) {
-  window.location.replace("login.html");
-}
+const groupScreen = document.getElementById("groupScreen")
+const chatScreen = document.getElementById("chatScreen")
 
-let currentGroupId = null;
-let unsubscribe = null;
+const groupList = document.getElementById("groupList")
+const groupTitle = document.getElementById("groupTitle")
 
-const groupList = document.getElementById("groupList");
-const groupTitle = document.getElementById("groupTitle");
-const messagesDiv = document.getElementById("messages");
-const sendBtn = document.getElementById("sendBtn");
-const messageInput = document.getElementById("messageInput");
-const logoutBtn = document.getElementById("logoutBtn");
+const messagesDiv = document.getElementById("messages")
 
-/* LOGOUT */
+const messageInput = document.getElementById("messageInput")
+const sendBtn = document.getElementById("sendBtn")
 
-logoutBtn.addEventListener("click", () => {
-  localStorage.removeItem("userNo");
-  localStorage.removeItem("nickname");
-  window.location.href = "login.html";
-});
+const backBtn = document.getElementById("backBtn")
 
-/* GRUPLARI YÜKLE */
+const createGroupBtn = document.getElementById("createGroupBtn")
+
+const settingsBtn = document.getElementById("settingsBtn")
+
+let currentGroup = null
+let owner = null
+let unsubscribe = null
 
 async function loadGroups() {
+  
   const q = query(
     collection(db, "groups"),
-    where("members", "array-contains", Number(userNo))
-  );
-
-  const snap = await getDocs(q);
-  groupList.innerHTML = "";
-
-  if (snap.empty) {
-    groupList.innerHTML = "<div style='opacity:0.6'>Grup yok</div>";
-    return;
-  }
-
-  snap.forEach(doc => {
-    const data = doc.data();
-
-    const div = document.createElement("div");
-    div.className = "group-item";
-    div.textContent = data.name;
-
-    div.addEventListener("click", () => {
-      document.querySelectorAll(".group-item").forEach(g =>
-        g.classList.remove("active")
-      );
-
-      div.classList.add("active");
-
-      selectGroup(doc.id, data.name);
-    });
-
-    groupList.appendChild(div);
-  });
+    where("members", "array-contains", email)
+  )
+  
+  const snap = await getDocs(q)
+  
+  groupList.innerHTML = ""
+  
+  snap.forEach(d => {
+    
+    const data = d.data()
+    
+    const div = document.createElement("div")
+    
+    div.className = "groupItem"
+    
+    div.innerText = data.name
+    
+    div.onclick = () => {
+      openGroup(d.id, data.name, data.owner)
+    }
+    
+    groupList.appendChild(div)
+    
+  })
+  
 }
 
-/* GRUP SEÇ */
+function openGroup(id, name, groupOwner) {
+  
+  currentGroup = id
+  owner = groupOwner
+  
+  groupTitle.innerText = name
+  
+  groupScreen.classList.add("hidden")
+  chatScreen.classList.remove("hidden")
+  
+  if (owner === email) {
+    settingsBtn.classList.remove("hidden")
+  } else {
+    settingsBtn.classList.add("hidden")
+  }
+  
+  loadMessages()
+  
+}
 
-function selectGroup(groupId, groupName) {
-  currentGroupId = groupId;
+backBtn.onclick = () => {
+  
+  chatScreen.classList.add("hidden")
+  groupScreen.classList.remove("hidden")
+  
+  if (unsubscribe) unsubscribe()
+  
+}
 
-  groupTitle.textContent = groupName;
-
-  if (unsubscribe) unsubscribe();
-
-  const messagesRef = collection(db, "groups", groupId, "messages");
-  const q = query(messagesRef, orderBy("createdAt"));
-
-  unsubscribe = onSnapshot(q, snapshot => {
-    messagesDiv.innerHTML = "";
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-
-      if (String(data.userNo) === String(userNo)) {
-        bubble.classList.add("me");
+function loadMessages() {
+  
+  if (unsubscribe) unsubscribe()
+  
+  const q = query(
+    collection(db, "groups", currentGroup, "messages"),
+    orderBy("createdAt")
+  )
+  
+  unsubscribe = onSnapshot(q, snap => {
+    
+    messagesDiv.innerHTML = ""
+    
+    snap.forEach(d => {
+      
+      const data = d.data()
+      
+      const div = document.createElement("div")
+      
+      div.className = "bubble"
+      
+      if (data.email === email) {
+        div.classList.add("me")
       } else {
-        bubble.classList.add("other");
+        div.classList.add("other")
       }
-
-      bubble.innerHTML = `
-        <div class="name">${data.nickname}</div>
-        <div>${data.text}</div>
-      `;
-
-      messagesDiv.appendChild(bubble);
-    });
-
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  });
+      
+      div.innerText = data.text
+      
+      messagesDiv.appendChild(div)
+      
+    })
+    
+    messagesDiv.scrollTop = messagesDiv.scrollHeight
+    
+  })
+  
 }
 
-/* MESAJ GÖNDER */
-
-sendBtn.addEventListener("click", async () => {
-  const text = messageInput.value.trim();
-
-  if (!text) return;
-
-  if (!currentGroupId) {
-    alert("Önce grup seç");
-    return;
-  }
-
+sendBtn.onclick = async () => {
+  
+  const text = messageInput.value.trim()
+  
+  if (!text) return
+  
   await addDoc(
-    collection(db, "groups", currentGroupId, "messages"),
+    collection(db, "groups", currentGroup, "messages"),
     {
       text: text,
-      nickname: nickname,
-      userNo: Number(userNo),
+      email: email,
       createdAt: Date.now()
     }
-  );
+  )
+  
+  messageInput.value = ""
+  
+}
 
-  messageInput.value = "";
-});
+createGroupBtn.onclick = async () => {
+  
+  const name = prompt("Grup adı")
+  
+  if (!name) return
+  
+  await addDoc(
+    collection(db, "groups"),
+    {
+      name: name,
+      owner: email,
+      members: [email]
+    }
+  )
+  
+  loadGroups()
+  
+}
 
-/* ENTER İLE GÖNDER */
+settingsBtn.onclick = async () => {
+  
+  const newUser = prompt("Eklenecek kullanıcının emaili")
+  
+  if (!newUser) return
+  
+  const groupRef = doc(db, "groups", currentGroup)
+  
+  const groupSnap = await getDocs(query(collection(db, "groups")))
+  
+  const group = groupSnap.docs.find(d => d.id === currentGroup)
+  
+  const data = group.data()
+  
+  data.members.push(newUser)
+  
+  await updateDoc(groupRef, {
+    members: data.members
+  })
+  
+  alert("Kullanıcı eklendi")
+  
+}
 
-messageInput.addEventListener("keypress", e => {
-  if (e.key === "Enter") {
-    sendBtn.click();
-  }
-});
-
-loadGroups();
+loadGroups()
