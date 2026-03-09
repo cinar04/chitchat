@@ -1,62 +1,78 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>ChitChat Login</title>
   <link rel="stylesheet" href="style2.css">
 </head>
-<body class="login-body">
 
+<body class="login-body">
+  
   <div class="login-box">
+    
     <h1>ChitChat</h1>
+    
     <input type="text" id="email" placeholder="E-posta">
     <input type="password" id="password" placeholder="Şifre">
+    
     <button id="loginBtn">Giriş Yap</button>
+    
+    <div class="createAccount">
+      Hesabın yok mu?
+      <a href="register.html">Hesap Oluştur</a>
+    </div>
+    
   </div>
-
-<script type="module">
-import { db } from "./firebase.js";
-import {
-  collection,
-  query,
-  where,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const btn = document.getElementById("loginBtn");
-
-btn.addEventListener("click", async () => {
-
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if (!email || !password) {
-    alert("Bilgileri doldur!");
-    return;
-  }
-
-  const q = query(
-    collection(db, "users"),
-    where("email", "==", email),
-    where("password", "==", password)
-  );
-
-  const snap = await getDocs(q);
-
-  if (snap.empty) {
-    alert("Yanlış e-posta veya şifre!");
-    return;
-  }
-
-  const doc = snap.docs[0];
-  const userData = doc.data();
-
-  localStorage.setItem("userNo", String(userData.userNo));
-  localStorage.setItem("nickname", userData.nickname);
-
-  window.location.replace("index.html");
-});
-</script>
-
+  
+  <script type="module">
+    import { db } from "./firebase.js";
+    import {
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    
+    const btn = document.getElementById("loginBtn");
+    
+    btn.addEventListener("click", async () => {
+      
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      
+      if (!email || !password) {
+        alert("Bilgileri doldur!");
+        return;
+      }
+      
+      const q = query(
+        collection(db, "users"),
+        where("email", "==", email)
+      );
+      
+      const snap = await getDocs(q);
+      
+      if (snap.empty) {
+        alert("Kullanıcı yok");
+        return;
+      }
+      
+      const data = snap.docs[0].data();
+      
+      if (data.password !== password) {
+        alert("Şifre yanlış");
+        return;
+      }
+      
+      localStorage.setItem("userNo", String(data.userNo));
+      localStorage.setItem("nickname", data.nickname);
+      
+      window.location.replace("index.html");
+      
+    });
+  </script>
+  
 </body>
-</html>>
+
+</html>
