@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>ChitChat - Hesap Oluştur</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body{
+background:#0f172a;
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+font-family:Arial;
+color:white;
+}
+.box{
+background:#1e293b;
+padding:40px;
+border-radius:12px;
+width:300px;
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+input{
+padding:10px;
+border-radius:8px;
+border:none;
+outline:none;
+}
+button{
+padding:10px;
+background:#3b82f6;
+border:none;
+border-radius:8px;
+color:white;
+cursor:pointer;
+}
+button:hover{
+background:#2563eb;
+}
+a{
+color:#60a5fa;
+text-decoration:none;
+text-align:center;
+}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>Hesap Oluştur</h2>
+<input id="nickname" placeholder="Nickname">
+<input id="email" placeholder="E-posta">
+<input id="password" type="password" placeholder="Şifre">
+<button id="registerBtn">Hesap Oluştur</button>
+<a href="login.html">Zaten hesabın var mı? Giriş yap</a>
+</div>
+<script type="module" src="register.js"></script>
+</body>
+</html>
