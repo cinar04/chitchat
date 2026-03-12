@@ -1,40 +1,46 @@
-import { auth, db } from "./firebase.js";
+import { auth, db } from "./firebase.js"
 
 import {
 signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"
 
 import {
 doc,
 getDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
 
-const btn = document.getElementById("loginBtn");
+document.getElementById("loginBtn").onclick = async () => {
 
-btn.onclick = async () => {
+const email=document.getElementById("email").value.trim()
+const password=document.getElementById("password").value.trim()
 
-const email = document.getElementById("email").value.trim();
-const password = document.getElementById("password").value.trim();
-
-if(!email || !password){
-alert("Bilgileri doldur");
-return;
+if(!email||!password){
+document.getElementById("error").innerText="Bilgileri doldur!"
+return
 }
 
-const cred = await signInWithEmailAndPassword(auth,email,password);
+try{
+
+const cred=await signInWithEmailAndPassword(auth,email,password)
 
 if(!cred.user.emailVerified){
-alert("Önce email doğrula!");
-return;
+document.getElementById("error").innerText="Önce email doğrula!"
+return
 }
 
-const userDoc = await getDoc(doc(db,"users",cred.user.uid));
+const snap=await getDoc(doc(db,"users",cred.user.uid))
 
-const user = userDoc.data();
+const user=snap.data()
 
-localStorage.setItem("nickname",user.nickname);
-localStorage.setItem("userNo",user.userNo);
+localStorage.setItem("nickname",user.nickname)
+localStorage.setItem("userNo",user.userNo)
 
-window.location.href="index.html";
+window.location.href="index.html"
 
-};
+}catch(e){
+
+document.getElementById("error").innerText="Giriş hatası"
+
+}
+
+}
