@@ -1,33 +1,40 @@
-import { db } from "./firebase.js";
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
 
-document.getElementById("loginBtn").onclick = async () => {
+import {
+signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
+import {
+doc,
+getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  if(!email || !password){
-    document.getElementById("error").innerText="Bilgileri doldur!";
-    return;
-  }
+const btn = document.getElementById("loginBtn");
 
-  const q = query(
-    collection(db,"users"),
-    where("email","==",email),
-    where("password","==",password)
-  );
+btn.onclick = async () => {
 
-  const snap = await getDocs(q);
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value.trim();
 
-  if(snap.empty){
-    document.getElementById("error").innerText="Yanlış eposta veya şifre!";
-    return;
-  }
+if(!email || !password){
+alert("Bilgileri doldur");
+return;
+}
 
-  const user = snap.docs[0].data();
+const cred = await signInWithEmailAndPassword(auth,email,password);
 
-  localStorage.setItem("nickname", user.nickname);
-  localStorage.setItem("userNo", user.userNo);
+if(!cred.user.emailVerified){
+alert("Önce email doğrula!");
+return;
+}
 
-  window.location.href="index.html";
+const userDoc = await getDoc(doc(db,"users",cred.user.uid));
+
+const user = userDoc.data();
+
+localStorage.setItem("nickname",user.nickname);
+localStorage.setItem("userNo",user.userNo);
+
+window.location.href="index.html";
+
 };
