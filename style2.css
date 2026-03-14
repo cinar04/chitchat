@@ -55,6 +55,69 @@ border:1px solid #38bdf8;
 box-shadow:0 0 15px rgba(56,189,248,0.6);
 }
 
+/* ── Google butonu ── */
+.google-btn {
+width: 100%;
+padding: 12px;
+border-radius: 14px;
+border: 1px solid rgba(255, 255, 255, 0.2);
+background: rgba(255, 255, 255, 0.08);
+color: white;
+font-weight: 500;
+cursor: pointer;
+font-size: 14px;
+transition: 0.3s;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+margin-bottom: 18px;
+}
+
+.google-btn:hover {
+background: rgba(255, 255, 255, 0.12);
+border-color: rgba(255, 255, 255, 0.3);
+transform: translateY(-1px);
+box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.google-btn img {
+width: 18px;
+height: 18px;
+}
+
+/* ── Google butonu ── */
+.google-btn {
+width: 100%;
+padding: 12px;
+border-radius: 14px;
+border: 1px solid rgba(255, 255, 255, 0.2);
+background: rgba(255, 255, 255, 0.08);
+color: white;
+font-weight: 500;
+cursor: pointer;
+font-size: 14px;
+transition: 0.3s;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+margin-bottom: 18px;
+}
+
+.google-btn:hover {
+background: rgba(255, 255, 255, 0.12);
+border-color: rgba(255, 255, 255, 0.3);
+transform: translateY(-1px);
+box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.google-btn svg {
+width: 18px;
+height: 18px;
+flex-shrink: 0;
+}
+
 /* ── Ana buton (login, register, tekrar gönder) ── */
 #loginBtn,
 #registerBtn,
