@@ -55,7 +55,10 @@ border:1px solid #38bdf8;
 box-shadow:0 0 15px rgba(56,189,248,0.6);
 }
 
-#loginBtn{
+/* ── Ana buton (login, register, tekrar gönder) ── */
+#loginBtn,
+#registerBtn,
+#resendBtn {
 width:100%;
 padding:15px;
 border-radius:14px;
@@ -66,37 +69,116 @@ font-weight:600;
 cursor:pointer;
 transition:0.3s;
 font-size:15px;
+margin-bottom:12px;
 }
 
-#loginBtn:hover{
+#loginBtn:hover,
+#registerBtn:hover,
+#resendBtn:hover:not(:disabled){
 transform:translateY(-2px);
 box-shadow:0 0 20px rgba(56,189,248,0.8);
 }
-.createAccount {
-  margin-top: 18px;
-  font-size: 13px;
-  color: #94a3b8;
+
+#resendBtn:disabled{
+opacity:0.5;
+cursor:not-allowed;
+transform:none;
+box-shadow:none;
 }
 
-.createAccount a {
-  color: #38bdf8;
-  text-decoration: none;
-  margin-left: 6px;
+/* ── İkincil buton (doğruladım) ── */
+#checkBtn{
+width:100%;
+padding:13px;
+border-radius:14px;
+border:1px solid rgba(56,189,248,0.4);
+background:transparent;
+color:#38bdf8;
+font-weight:600;
+cursor:pointer;
+font-size:14px;
+transition:0.3s;
 }
 
-.passwordBar {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  margin-top: -10px;
-  margin-bottom: 20px;
-  overflow: hidden;
+#checkBtn:hover{
+background:rgba(56,189,248,0.1);
+border-color:#38bdf8;
 }
 
-#bar {
-  height: 100%;
-  width: 0%;
-  background: red;
-  transition: 0.3s;
+/* ── Verify sayfası ── */
+.verify-box .verify-icon{
+font-size:52px;
+margin-bottom:16px;
+}
+
+.verify-box p{
+color:#94a3b8;
+font-size:14px;
+line-height:1.6;
+margin-bottom:20px;
+}
+
+.verify-box .email-highlight{
+color:#38bdf8;
+font-weight:600;
+}
+
+#timer{
+font-size:12px;
+color:#64748b;
+margin-bottom:16px;
+min-height:18px;
+}
+
+#statusMsg{
+font-size:13px;
+min-height:18px;
+margin-bottom:10px;
+}
+
+.logout-link{
+margin-top:20px;
+font-size:12px;
+color:#475569;
+}
+
+.logout-link a{
+color:#64748b;
+text-decoration:none;
+transition:0.2s;
+}
+
+.logout-link a:hover{
+color:#94a3b8;
+}
+
+/* ── Alt linkler ── */
+.createAccount{
+margin-top:18px;
+font-size:13px;
+color:#94a3b8;
+}
+
+.createAccount a{
+color:#38bdf8;
+text-decoration:none;
+margin-left:6px;
+}
+
+/* ── Şifre güç barı ── */
+.passwordBar{
+width:100%;
+height:8px;
+background:rgba(255,255,255,0.1);
+border-radius:10px;
+margin-top:-10px;
+margin-bottom:20px;
+overflow:hidden;
+}
+
+#bar{
+height:100%;
+width:0%;
+background:red;
+transition:0.3s;
 }

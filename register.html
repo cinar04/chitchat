@@ -101,8 +101,7 @@
           createdAt: Date.now()
         });
 
-        alert("Doğrulama e-postası gönderildi! Giriş yapmadan önce e-postanı onayla.");
-        location.href = "login.html";
+        location.href = "verify.html";
 
       } catch (e) {
         if (e.code === "auth/email-already-in-use") {

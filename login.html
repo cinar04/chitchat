@@ -44,6 +44,8 @@
       const email    = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
+      errorEl.innerText = "";
+
       if (!email || !password) {
         errorEl.innerText = "Bilgileri doldur!";
         return;
@@ -53,26 +55,43 @@
 
         const cred = await signInWithEmailAndPassword(auth, email, password);
 
-        // Firestore'dan nickname ve userNo çek
+        // E-posta doğrulanmamışsa verify sayfasına gönder
+        if (!cred.user.emailVerified) {
+          window.location.replace("verify.html");
+          return;
+        }
+
+        // Firestore'dan profil bilgilerini çek
         const snap = await getDoc(doc(db, "users", cred.user.uid));
+
+        if (!snap.exists()) {
+          errorEl.innerText = "Kullanıcı profili bulunamadı.";
+          return;
+        }
+
         const data = snap.data();
 
+        localStorage.setItem("email",    cred.user.email);
         localStorage.setItem("nickname", data.nickname);
         localStorage.setItem("userNo",   String(data.userNo));
-        // email'i de saklıyoruz — app.js grup üyeliği için kullanıyor
-        localStorage.setItem("email", cred.user.email);
 
         window.location.replace("index.html");
 
       } catch (e) {
+        console.error("Login hatası:", e.code, e.message);
+
         if (e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") {
           errorEl.innerText = "E-posta veya şifre hatalı.";
         } else if (e.code === "auth/user-not-found") {
           errorEl.innerText = "Bu e-posta ile kayıtlı kullanıcı yok.";
+        } else if (e.code === "auth/invalid-email") {
+          errorEl.innerText = "Geçersiz e-posta formatı.";
         } else if (e.code === "auth/too-many-requests") {
-          errorEl.innerText = "Çok fazla deneme. Lütfen bekleyin.";
+          errorEl.innerText = "Çok fazla deneme. Biraz bekle.";
+        } else if (e.code === "auth/network-request-failed") {
+          errorEl.innerText = "İnternet bağlantısı hatası.";
         } else {
-          errorEl.innerText = "Giriş hatası: " + e.message;
+          errorEl.innerText = "Hata: " + e.code;
         }
       }
 
