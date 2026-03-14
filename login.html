@@ -92,6 +92,12 @@
 
         const data = snap.data();
 
+        // Setup sayfasını atlamış mı kontrol et
+        if (!data.passwordSet) {
+          window.location.replace("setup.html");
+          return;
+        }
+
         localStorage.setItem("email",    cred.user.email);
         localStorage.setItem("nickname", data.nickname);
         localStorage.setItem("userNo",   String(data.userNo));
@@ -132,20 +138,23 @@
         const snap = await getDoc(doc(db, "users", user.uid));
 
         if (!snap.exists()) {
-          // Yeni kullanıcı ise oluştur
+          // Yeni kullanıcı ise oluştur (henüz şifre belirlemedi)
           const userNo = Math.floor(Math.random() * 900000) + 100000;
           await setDoc(doc(db, "users", user.uid), {
             nickname:  user.displayName || user.email.split("@")[0],
             email:     user.email,
             userNo:    userNo,
+            passwordSet: false,  // Şifre henüz belirlenmiş değil
             createdAt: Date.now()
           });
+          
+          // Setup sayfasına yönlendir
+          window.location.replace("setup.html");
+          return;
         }
 
-        const data = snap.exists() ? snap.data() : {
-          nickname: user.displayName || user.email.split("@")[0],
-          userNo: Math.floor(Math.random() * 900000) + 100000
-        };
+        // Var olan kullanıcı
+        const data = snap.data();
 
         localStorage.setItem("email",    user.email);
         localStorage.setItem("nickname", data.nickname);

@@ -8,7 +8,9 @@ import {
   onSnapshot,
   orderBy,
   updateDoc,
-  doc
+  doc,
+  arrayUnion,
+  arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
 
 const email = localStorage.getItem("email")
@@ -18,6 +20,7 @@ const chatScreen = document.getElementById("chatScreen")
 
 const groupList = document.getElementById("groupList")
 const groupTitle = document.getElementById("groupTitle")
+const userRoleSpan = document.getElementById("userRole")
 
 const messagesDiv = document.getElementById("messages")
 
@@ -31,7 +34,7 @@ const createGroupBtn = document.getElementById("createGroupBtn")
 const settingsBtn = document.getElementById("settingsBtn")
 
 let currentGroup = null
-let owner = null
+let currentUserRole = null
 let unsubscribe = null
 
 async function loadGroups() {
@@ -49,14 +52,27 @@ async function loadGroups() {
     
     const data = d.data()
     
+    // Kullanıcının bu grupta hangi rolü olduğunu bul
+    const userMember = data.members.find(m => m.email === email)
+    const role = userMember ? userMember.role : "normal"
+    
     const div = document.createElement("div")
     
     div.className = "groupItem"
     
-    div.innerText = data.name
+    div.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span>${data.name}</span>
+        <span style="font-size: 12px; color: #94a3b8; background: #374151; padding: 4px 10px; border-radius: 10px;">
+          ${role === "admin" ? "👑 Admin" : "👤 Normal"}
+        </span>
+      </div>
+    `
+    
+    div.style.cursor = "pointer"
     
     div.onclick = () => {
-      openGroup(d.id, data.name, data.owner)
+      openGroup(d.id, data.name, role)
     }
     
     groupList.appendChild(div)
@@ -65,17 +81,20 @@ async function loadGroups() {
   
 }
 
-function openGroup(id, name, groupOwner) {
+function openGroup(id, name, userRole) {
   
   currentGroup = id
-  owner = groupOwner
+  currentUserRole = userRole
   
   groupTitle.innerText = name
+  userRoleSpan.innerText = userRole === "admin" ? "👑 Admin" : "👤 Normal Üye"
+  userRoleSpan.style.color = userRole === "admin" ? "#fbbf24" : "#94a3b8"
   
   groupScreen.classList.add("hidden")
   chatScreen.classList.remove("hidden")
   
-  if (owner === email) {
+  // Sadece admin ayarları görebilir
+  if (currentUserRole === "admin") {
     settingsBtn.classList.remove("hidden")
   } else {
     settingsBtn.classList.add("hidden")
@@ -91,6 +110,8 @@ backBtn.onclick = () => {
   groupScreen.classList.remove("hidden")
   
   if (unsubscribe) unsubscribe()
+  
+  loadGroups()
   
 }
 
@@ -111,6 +132,12 @@ function loadMessages() {
       
       const data = d.data()
       
+      // Saati formatla
+      const date = new Date(data.createdAt)
+      const hours = String(date.getHours()).padStart(2, "0")
+      const minutes = String(date.getMinutes()).padStart(2, "0")
+      const timeString = `${hours}:${minutes}`
+      
       const div = document.createElement("div")
       
       div.className = "bubble"
@@ -121,7 +148,14 @@ function loadMessages() {
         div.classList.add("other")
       }
       
-      div.innerText = data.text
+      // Gönderici adı ve saati göster
+      div.innerHTML = `
+        <div class="message-header">
+          <span class="sender-name">${data.nickname || data.email}</span>
+          <span class="message-time">${timeString}</span>
+        </div>
+        <div class="message-text">${data.text}</div>
+      `
       
       messagesDiv.appendChild(div)
       
@@ -139,11 +173,14 @@ sendBtn.onclick = async () => {
   
   if (!text) return
   
+  const nickname = localStorage.getItem("nickname")
+  
   await addDoc(
     collection(db, "groups", currentGroup, "messages"),
     {
       text: text,
       email: email,
+      nickname: nickname,
       createdAt: Date.now()
     }
   )
@@ -158,12 +195,17 @@ createGroupBtn.onclick = async () => {
   
   if (!name) return
   
+  // Grup oluşturan otomatik admin
   await addDoc(
     collection(db, "groups"),
     {
       name: name,
-      owner: email,
-      members: [email]
+      members: [
+        {
+          email: email,
+          role: "admin"  // Oluşturan otomatik admin
+        }
+      ]
     }
   )
   
@@ -173,25 +215,34 @@ createGroupBtn.onclick = async () => {
 
 settingsBtn.onclick = async () => {
   
-  const newUser = prompt("Eklenecek kullanıcının emaili")
+  const newUserEmail = prompt("Eklenecek kullanıcının emaili")
   
-  if (!newUser) return
+  if (!newUserEmail) return
+  
+  // Rol seçme diyaloğu
+  const roleChoice = prompt("Rol seçin:\n1 = Admin\n2 = Normal\n(1 veya 2 girin)", "2")
+  
+  if (!roleChoice) return
+  
+  const selectedRole = roleChoice === "1" ? "admin" : "normal"
   
   const groupRef = doc(db, "groups", currentGroup)
   
-  const groupSnap = await getDocs(query(collection(db, "groups")))
-  
-  const group = groupSnap.docs.find(d => d.id === currentGroup)
-  
-  const data = group.data()
-  
-  data.members.push(newUser)
-  
-  await updateDoc(groupRef, {
-    members: data.members
-  })
-  
-  alert("Kullanıcı eklendi")
+  try {
+    
+    // Yeni üyeyi ekle
+    await updateDoc(groupRef, {
+      members: arrayUnion({
+        email: newUserEmail,
+        role: selectedRole
+      })
+    })
+    
+    alert(`${newUserEmail} ${selectedRole === "admin" ? "Admin" : "Normal"} olarak eklendi!`)
+    
+  } catch (e) {
+    alert("Hata: " + e.message)
+  }
   
 }
 

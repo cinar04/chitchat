@@ -107,13 +107,10 @@
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(cred.user);
 
-        const userNo = Math.floor(Math.random() * 900000) + 100000;
-
         await setDoc(doc(db, "users", cred.user.uid), {
           nickname:  nickname,
           email:     email,
-          userNo:    userNo,
-          createdAt: Date.now()
+          userNo:    null
         });
 
         location.href = "verify.html";
@@ -136,18 +133,14 @@
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
-        const userNo = Math.floor(Math.random() * 900000) + 100000;
-
         await setDoc(doc(db, "users", user.uid), {
           nickname:  user.displayName || user.email.split("@")[0],
           email:     user.email,
-          userNo:    userNo,
-          createdAt: Date.now()
+          userNo:    null
         });
 
         localStorage.setItem("email",    user.email);
         localStorage.setItem("nickname", user.displayName || user.email.split("@")[0]);
-        localStorage.setItem("userNo",   String(userNo));
 
         window.location.replace("index.html");
 
