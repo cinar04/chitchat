@@ -9,91 +9,127 @@ import {
   orderBy,
   updateDoc,
   doc,
-  arrayUnion
+  setDoc,
+  deleteDoc,
+  arrayUnion,
+  arrayRemove,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
 
 const email = localStorage.getItem("email")
 const nickname = localStorage.getItem("nickname")
 
-// Nickname yoksa setup sayfasına yönlendir
 if (!nickname || nickname.trim() === "") {
   window.location.replace("setup.html")
 }
 
-const groupScreen = document.getElementById("groupScreen")
-const chatScreen = document.getElementById("chatScreen")
+const groupScreen    = document.getElementById("groupScreen")
+const chatScreen     = document.getElementById("chatScreen")
+const settingsScreen = document.getElementById("settingsScreen")
 
-const groupList = document.getElementById("groupList")
-const groupTitle = document.getElementById("groupTitle")
+const groupList   = document.getElementById("groupList")
+const groupTitle  = document.getElementById("groupTitle")
 const userRoleSpan = document.getElementById("userRole")
-
-const messagesDiv = document.getElementById("messages")
-
+const messagesDiv  = document.getElementById("messages")
 const messageInput = document.getElementById("messageInput")
-const sendBtn = document.getElementById("sendBtn")
-
-const backBtn = document.getElementById("backBtn")
+const sendBtn      = document.getElementById("sendBtn")
+const backBtn      = document.getElementById("backBtn")
 const createGroupBtn = document.getElementById("createGroupBtn")
-const settingsBtn = document.getElementById("settingsBtn")
+const settingsBtn  = document.getElementById("settingsBtn")
+const backFromSettings = document.getElementById("backFromSettings")
+
+// Settings ekranı elemanları
+const settingsGroupName   = document.getElementById("settingsGroupName")
+const membersList         = document.getElementById("membersList")
+const addMemberEmailInput = document.getElementById("addMemberEmail")
+const addMemberRoleSelect = document.getElementById("addMemberRole")
+const addMemberBtn        = document.getElementById("addMemberBtn")
+const renameGroupInput    = document.getElementById("renameGroupInput")
+const renameGroupBtn      = document.getElementById("renameGroupBtn")
+const deleteGroupBtn      = document.getElementById("deleteGroupBtn")
+
+// Toast bildirimi
+function showToast(msg, type = "info") {
+  const toast = document.createElement("div")
+  toast.className = `toast toast-${type}`
+  toast.innerText = msg
+  document.body.appendChild(toast)
+  setTimeout(() => toast.classList.add("show"), 10)
+  setTimeout(() => {
+    toast.classList.remove("show")
+    setTimeout(() => toast.remove(), 300)
+  }, 3000)
+}
+
+// Onay dialogu (confirm yerine)
+function showConfirm(msg, onConfirm) {
+  const overlay = document.createElement("div")
+  overlay.className = "dialog-overlay"
+  overlay.innerHTML = `
+    <div class="dialog-box">
+      <p>${msg}</p>
+      <div class="dialog-btns">
+        <button class="dialog-cancel">İptal</button>
+        <button class="dialog-ok danger">Evet, Devam Et</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(overlay)
+  overlay.querySelector(".dialog-cancel").onclick = () => overlay.remove()
+  overlay.querySelector(".dialog-ok").onclick = () => {
+    overlay.remove()
+    onConfirm()
+  }
+}
 
 let currentGroup = null
 let currentUserRole = null
 let unsubscribe = null
 
 async function loadGroups() {
-
-  // memberEmails dizisinde string olarak sorgula
   const q = query(
     collection(db, "groups"),
     where("memberEmails", "array-contains", email)
   )
-
   const snap = await getDocs(q)
-
   groupList.innerHTML = ""
 
+  if (snap.empty) {
+    groupList.innerHTML = `<div class="empty-state">Henüz bir gruba katılmadın.<br>Yeni grup oluştur veya davet bekle.</div>`
+    return
+  }
+
   snap.forEach(d => {
-
     const data = d.data()
-
-    // Rol bilgisini members obje dizisinden al
     const userMember = (data.members || []).find(m => m.email === email)
     const role = userMember ? userMember.role : "normal"
 
     const div = document.createElement("div")
     div.className = "groupItem"
     div.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span>${data.name}</span>
-        <span style="font-size: 12px; color: #94a3b8; background: #374151; padding: 4px 10px; border-radius: 10px;">
-          ${role === "admin" ? "👑 Admin" : "👤 Normal"}
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="group-name-text">${data.name}</span>
+        <span class="role-badge ${role === 'admin' ? 'role-admin' : 'role-normal'}">
+          ${role === "admin" ? "👑 Admin" : "👤 Üye"}
         </span>
       </div>
     `
-    div.style.cursor = "pointer"
     div.onclick = () => openGroup(d.id, data.name, role)
     groupList.appendChild(div)
-
   })
-
 }
 
 function openGroup(id, name, userRole) {
-
   currentGroup = id
   currentUserRole = userRole
-
   groupTitle.innerText = name
-  userRoleSpan.innerText = userRole === "admin" ? "👑 Admin" : "👤 Normal Üye"
+  userRoleSpan.innerText = userRole === "admin" ? "👑 Admin" : "👤 Üye"
   userRoleSpan.style.color = userRole === "admin" ? "#fbbf24" : "#94a3b8"
 
   groupScreen.classList.add("hidden")
   chatScreen.classList.remove("hidden")
-
   settingsBtn.classList.toggle("hidden", currentUserRole !== "admin")
-
   loadMessages()
-
 }
 
 backBtn.onclick = () => {
@@ -104,35 +140,21 @@ backBtn.onclick = () => {
 }
 
 function loadMessages() {
-
   if (unsubscribe) unsubscribe()
-
   const q = query(
     collection(db, "groups", currentGroup, "messages"),
     orderBy("createdAt")
   )
-
   unsubscribe = onSnapshot(q, snap => {
-
     messagesDiv.innerHTML = ""
-
     snap.forEach(d => {
-
       const data = d.data()
-
       const date = new Date(data.createdAt)
-      const hours = String(date.getHours()).padStart(2, "0")
-      const minutes = String(date.getMinutes()).padStart(2, "0")
-      const timeString = `${hours}:${minutes}`
-
+      const timeString = `${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`
       const div = document.createElement("div")
       div.className = "bubble"
       div.classList.add(data.email === email ? "me" : "other")
-
-      const displayName = data.nickname && data.nickname.trim() !== ""
-        ? data.nickname
-        : (data.email ? data.email.split("@")[0] : "Kullanıcı")
-
+      const displayName = data.nickname?.trim() ? data.nickname : (data.email?.split("@")[0] || "Kullanıcı")
       div.innerHTML = `
         <div class="message-header">
           <span class="sender-name">${displayName}</span>
@@ -140,82 +162,205 @@ function loadMessages() {
         </div>
         <div class="message-text">${data.text}</div>
       `
-
       messagesDiv.appendChild(div)
-
     })
-
     messagesDiv.scrollTop = messagesDiv.scrollHeight
-
   })
-
 }
 
 sendBtn.onclick = async () => {
-
   const text = messageInput.value.trim()
   if (!text) return
-
-  const senderNickname = nickname && nickname.trim() !== ""
-    ? nickname
-    : (email ? email.split("@")[0] : "Kullanıcı")
-
-  await addDoc(
-    collection(db, "groups", currentGroup, "messages"),
-    {
-      text,
-      email,
-      nickname: senderNickname,
-      createdAt: Date.now()
-    }
-  )
-
+  const senderNickname = nickname?.trim() || email?.split("@")[0] || "Kullanıcı"
+  await addDoc(collection(db, "groups", currentGroup, "messages"), {
+    text, email, nickname: senderNickname, createdAt: Date.now()
+  })
   messageInput.value = ""
-
 }
 
-createGroupBtn.onclick = async () => {
+messageInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault()
+    sendBtn.click()
+  }
+})
 
-  const name = prompt("Grup adı")
-  if (!name) return
+// --- GRUP OLUŞTURMA (custom ID = grup adı slug) ---
+createGroupBtn.onclick = () => {
+  showInputDialog("Yeni Grup Oluştur", "Grup adını girin", "Grup adı", async (name) => {
+    if (!name) return
+    const groupId = name.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-ğüşıöçĞÜŞİÖÇ]/g, "")
+    if (!groupId) { showToast("Geçersiz grup adı!", "error"); return }
 
-  // memberEmails: sorgulama için string dizisi
-  // members: rol bilgisi için obje dizisi
-  await addDoc(collection(db, "groups"), {
-    name,
-    memberEmails: [email],
-    members: [{ email, role: "admin" }]
+    // ID çakışma kontrolü
+    const existing = await getDoc(doc(db, "groups", groupId))
+    if (existing.exists()) {
+      showToast("Bu isimde bir grup zaten var!", "error")
+      return
+    }
+
+    await setDoc(doc(db, "groups", groupId), {
+      name: name.trim(),
+      memberEmails: [email],
+      members: [{ email, role: "admin" }],
+      createdAt: Date.now()
+    })
+    showToast("Grup oluşturuldu!", "success")
+    loadGroups()
+  })
+}
+
+// --- AYARLAR EKRANI ---
+settingsBtn.onclick = async () => {
+  chatScreen.classList.add("hidden")
+  settingsScreen.classList.remove("hidden")
+  settingsGroupName.innerText = groupTitle.innerText
+  renameGroupInput.value = groupTitle.innerText
+  await loadMembersList()
+}
+
+backFromSettings.onclick = () => {
+  settingsScreen.classList.add("hidden")
+  chatScreen.classList.remove("hidden")
+}
+
+async function loadMembersList() {
+  const groupSnap = await getDoc(doc(db, "groups", currentGroup))
+  if (!groupSnap.exists()) return
+  const data = groupSnap.data()
+  const members = data.members || []
+
+  membersList.innerHTML = ""
+  members.forEach(m => {
+    const div = document.createElement("div")
+    div.className = "member-item"
+    div.innerHTML = `
+      <div class="member-info">
+        <span class="member-email">${m.email}</span>
+        <span class="role-badge ${m.role === 'admin' ? 'role-admin' : 'role-normal'} small">
+          ${m.role === "admin" ? "👑 Admin" : "👤 Üye"}
+        </span>
+      </div>
+      <div class="member-actions">
+        ${m.email !== email ? `
+          <button class="btn-toggle-role" data-email="${m.email}" data-role="${m.role}">
+            ${m.role === "admin" ? "Üye Yap" : "Admin Yap"}
+          </button>
+          <button class="btn-remove-member" data-email="${m.email}">Çıkar</button>
+        ` : `<span class="you-label">Sen</span>`}
+      </div>
+    `
+    membersList.appendChild(div)
   })
 
-  loadGroups()
+  membersList.querySelectorAll(".btn-remove-member").forEach(btn => {
+    btn.onclick = () => {
+      const targetEmail = btn.dataset.email
+      showConfirm(`${targetEmail} kişisini gruptan çıkarmak istediğine emin misin?`, async () => {
+        const groupRef = doc(db, "groups", currentGroup)
+        const snap = await getDoc(groupRef)
+        const currentMembers = snap.data().members || []
+        const memberToRemove = currentMembers.find(m => m.email === targetEmail)
+        await updateDoc(groupRef, {
+          memberEmails: arrayRemove(targetEmail),
+          members: arrayRemove(memberToRemove)
+        })
+        showToast(`${targetEmail} gruptan çıkarıldı.`, "success")
+        await loadMembersList()
+      })
+    }
+  })
 
+  membersList.querySelectorAll(".btn-toggle-role").forEach(btn => {
+    btn.onclick = async () => {
+      const targetEmail = btn.dataset.email
+      const currentRole = btn.dataset.role
+      const newRole = currentRole === "admin" ? "normal" : "admin"
+      const groupRef = doc(db, "groups", currentGroup)
+      const snap = await getDoc(groupRef)
+      const currentMembers = snap.data().members || []
+      const oldEntry = currentMembers.find(m => m.email === targetEmail)
+      await updateDoc(groupRef, { members: arrayRemove(oldEntry) })
+      await updateDoc(groupRef, { members: arrayUnion({ email: targetEmail, role: newRole }) })
+      showToast(`Rol güncellendi.`, "success")
+      await loadMembersList()
+    }
+  })
 }
 
-settingsBtn.onclick = async () => {
-
-  const newUserEmail = prompt("Eklenecek kullanıcının emaili")
-  if (!newUserEmail) return
-
-  const roleChoice = prompt("Rol seçin:\n1 = Admin\n2 = Normal\n(1 veya 2 girin)", "2")
-  if (!roleChoice) return
-
-  const selectedRole = roleChoice === "1" ? "admin" : "normal"
+addMemberBtn.onclick = async () => {
+  const newEmail = addMemberEmailInput.value.trim()
+  const role = addMemberRoleSelect.value
+  if (!newEmail) { showToast("E-posta boş olamaz!", "error"); return }
 
   const groupRef = doc(db, "groups", currentGroup)
-
-  try {
-
-    await updateDoc(groupRef, {
-      memberEmails: arrayUnion(newUserEmail),
-      members: arrayUnion({ email: newUserEmail, role: selectedRole })
-    })
-
-    alert(`${newUserEmail} ${selectedRole === "admin" ? "Admin" : "Normal"} olarak eklendi!`)
-
-  } catch (e) {
-    alert("Hata: " + e.message)
+  const snap = await getDoc(groupRef)
+  const existingEmails = snap.data().memberEmails || []
+  if (existingEmails.includes(newEmail)) {
+    showToast("Bu kullanıcı zaten grupta!", "error"); return
   }
 
+  await updateDoc(groupRef, {
+    memberEmails: arrayUnion(newEmail),
+    members: arrayUnion({ email: newEmail, role })
+  })
+  addMemberEmailInput.value = ""
+  showToast(`${newEmail} gruba eklendi!`, "success")
+  await loadMembersList()
+}
+
+renameGroupBtn.onclick = async () => {
+  const newName = renameGroupInput.value.trim()
+  if (!newName) { showToast("Grup adı boş olamaz!", "error"); return }
+  await updateDoc(doc(db, "groups", currentGroup), { name: newName })
+  groupTitle.innerText = newName
+  settingsGroupName.innerText = newName
+  showToast("Grup adı güncellendi!", "success")
+}
+
+deleteGroupBtn.onclick = () => {
+  showConfirm("Grubu silmek istediğine emin misin? Bu işlem geri alınamaz!", async () => {
+    // Mesajları sil
+    const msgsSnap = await getDocs(collection(db, "groups", currentGroup, "messages"))
+    for (const d of msgsSnap.docs) {
+      await deleteDoc(d.ref)
+    }
+    await deleteDoc(doc(db, "groups", currentGroup))
+    settingsScreen.classList.add("hidden")
+    groupScreen.classList.remove("hidden")
+    if (unsubscribe) unsubscribe()
+    showToast("Grup silindi.", "info")
+    loadGroups()
+  })
+}
+
+// --- Input Dialog Helper ---
+function showInputDialog(title, desc, placeholder, onConfirm) {
+  const overlay = document.createElement("div")
+  overlay.className = "dialog-overlay"
+  overlay.innerHTML = `
+    <div class="dialog-box">
+      <h3>${title}</h3>
+      <p>${desc}</p>
+      <input type="text" class="dialog-input" placeholder="${placeholder}" />
+      <div class="dialog-btns">
+        <button class="dialog-cancel">İptal</button>
+        <button class="dialog-ok">Oluştur</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(overlay)
+  const input = overlay.querySelector(".dialog-input")
+  input.focus()
+  overlay.querySelector(".dialog-cancel").onclick = () => overlay.remove()
+  overlay.querySelector(".dialog-ok").onclick = () => {
+    const val = input.value.trim()
+    overlay.remove()
+    onConfirm(val)
+  }
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") overlay.querySelector(".dialog-ok").click()
+  })
 }
 
 loadGroups()

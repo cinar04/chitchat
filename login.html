@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChitChat Login</title>
   <link rel="stylesheet" href="style2.css">
 </head>
@@ -59,9 +60,7 @@
     const errorEl = document.getElementById("error");
     const googleBtn = document.getElementById("googleBtn");
 
-    // Standart email/password giriş
     document.getElementById("loginBtn").onclick = async () => {
-
       const email    = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
@@ -73,16 +72,13 @@
       }
 
       try {
-
         const cred = await signInWithEmailAndPassword(auth, email, password);
 
-        // E-posta doğrulanmamışsa verify sayfasına gönder
         if (!cred.user.emailVerified) {
           window.location.replace("verify.html");
           return;
         }
 
-        // Firestore'dan profil bilgilerini çek
         const snap = await getDoc(doc(db, "users", cred.user.uid));
 
         if (!snap.exists()) {
@@ -92,15 +88,10 @@
 
         const data = snap.data();
 
-        // Setup sayfasını atlamış mı kontrol et
-        if (!data.passwordSet) {
-          window.location.replace("setup.html");
-          return;
-        }
-
+        // email her zaman localStorage'a kaydedilmeli
         localStorage.setItem("email",    cred.user.email);
-        localStorage.setItem("nickname", data.nickname);
-        localStorage.setItem("userNo",   String(data.userNo));
+        localStorage.setItem("nickname", data.nickname || cred.user.email.split("@")[0]);
+        localStorage.setItem("userNo",   String(data.userNo || ""));
 
         window.location.replace("index.html");
 
@@ -121,10 +112,8 @@
           errorEl.innerText = "Hata: " + e.code;
         }
       }
-
     };
 
-    // Google ile giriş
     googleBtn.onclick = async (e) => {
       e.preventDefault();
       errorEl.innerText = "";
@@ -134,31 +123,31 @@
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
-        // Firestore'da kullanıcı var mı kontrol et
         const snap = await getDoc(doc(db, "users", user.uid));
 
         if (!snap.exists()) {
-          // Yeni kullanıcı ise oluştur (henüz şifre belirlemedi)
           const userNo = Math.floor(Math.random() * 900000) + 100000;
           await setDoc(doc(db, "users", user.uid), {
-            nickname:  user.displayName || user.email.split("@")[0],
-            email:     user.email,
-            userNo:    userNo,
-            passwordSet: false,  // Şifre henüz belirlenmiş değil
-            createdAt: Date.now()
+            nickname:    user.displayName || user.email.split("@")[0],
+            email:       user.email,
+            userNo:      userNo,
+            passwordSet: false,
+            createdAt:   Date.now()
           });
-          
-          // Setup sayfasına yönlendir
+
+          // email kaydet, setup sayfası nickname'e ihtiyaç duyar
+          localStorage.setItem("email",    user.email);
+          localStorage.setItem("nickname", user.displayName || user.email.split("@")[0]);
+
           window.location.replace("setup.html");
           return;
         }
 
-        // Var olan kullanıcı
         const data = snap.data();
 
         localStorage.setItem("email",    user.email);
-        localStorage.setItem("nickname", data.nickname);
-        localStorage.setItem("userNo",   String(data.userNo));
+        localStorage.setItem("nickname", data.nickname || user.email.split("@")[0]);
+        localStorage.setItem("userNo",   String(data.userNo || ""));
 
         window.location.replace("index.html");
 
@@ -174,5 +163,4 @@
   </script>
   
 </body>
-
 </html>

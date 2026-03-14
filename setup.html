@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChitChat - Profil Kurulumu</title>
   <link rel="stylesheet" href="style2.css">
 </head>
@@ -14,13 +15,13 @@
     <div class="verify-icon">⚙</div>
     <h1>Profil Kurulumu</h1>
     
-    <p>
+    <p id="infoText">
       Google hesabınız başarıyla bağlandı!<br><br>
-      E-posta/Şifre ile de giriş yapabilmek için lütfen aşağıdaki bilgileri doldurun.
+      Devam etmek için lütfen bir takma ad belirleyin.
     </p>
     
     <input type="text" id="nickname" placeholder="Takma Ad (Nickname)">
-    <input type="password" id="password" placeholder="Şifre (Min. 8 karakter)">
+    <input type="password" id="password" placeholder="Şifre (Min. 8 karakter) - Opsiyonel">
     
     <div class="passwordBar">
       <div id="bar"></div>
@@ -28,14 +29,13 @@
     
     <p id="error" style="color:#f87171; font-size:13px; margin-bottom:12px; min-height:18px;"></p>
     
-    <button id="setupBtn">Profil Kurulumunu Tamamla</button>
+    <button id="setupBtn">Devam Et</button>
     
   </div>
   
   <script type="module">
     import { auth, db } from "./firebase.js";
     import {
-      updateProfile,
       updatePassword,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -47,14 +47,14 @@
 
     const nicknameInput = document.getElementById("nickname");
     const passwordInput = document.getElementById("password");
-    const bar = document.getElementById("bar");
-    const errorEl = document.getElementById("error");
+    const bar      = document.getElementById("bar");
+    const errorEl  = document.getElementById("error");
     const setupBtn = document.getElementById("setupBtn");
+    const infoText = document.getElementById("infoText");
 
-    let passwordValid = false;
+    let passwordValid = true; // şifre opsiyonel, boş bırakılabilir
     let currentUser = null;
 
-    // Kullanıcı giriş durumunu kontrol et
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.replace("login.html");
@@ -63,39 +63,55 @@
 
       currentUser = user;
 
-      // Eğer zaten şifre belirlediyse, direkt ana sayfaya git
+      // Zaten tamamlandıysa geç
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists() && userDoc.data().passwordSet === true) {
+        // nickname ve email localStorage'da var mı kontrol et
+        if (!localStorage.getItem("email")) {
+          localStorage.setItem("email", user.email);
+        }
+        if (!localStorage.getItem("nickname")) {
+          localStorage.setItem("nickname", userDoc.data().nickname || user.email.split("@")[0]);
+        }
         window.location.replace("index.html");
         return;
       }
 
-      // Email'i göster
-      document.querySelector(".verify-box p").innerHTML = `
-        <strong>${user.email}</strong> adresi ile giriş yapıyorsunuz.<br><br>
-        E-posta/Şifre ile de giriş yapabilmek için lütfen aşağıdaki bilgileri doldurun.
+      infoText.innerHTML = `
+        <strong>${user.email}</strong> adresiyle giriş yapıyorsunuz.<br><br>
+        Devam etmek için bir takma ad belirleyin.
       `;
+
+      // Mevcut nickname varsa doldur
+      if (userDoc.exists() && userDoc.data().nickname) {
+        nicknameInput.value = userDoc.data().nickname;
+      }
     });
 
-    // Şifre güç göstergesi
     passwordInput.addEventListener("input", () => {
       const pass = passwordInput.value;
-      const lengthOk = pass.length >= 8;
+
+      if (pass.length === 0) {
+        passwordValid = true; // boş bırakılabilir
+        bar.style.width = "0%";
+        return;
+      }
+
+      const lengthOk  = pass.length >= 8;
       const specialOk = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
 
       let strength = 0;
-      if (pass.length >= 4) strength += 25;
-      if (pass.length >= 8) strength += 25;
-      if (/[A-Z]/.test(pass)) strength += 25;
-      if (/[!@#$%^&*(),.?":{}|<>]/.test(pass)) strength += 25;
+      if (pass.length >= 4)                       strength += 25;
+      if (pass.length >= 8)                       strength += 25;
+      if (/[A-Z]/.test(pass))                     strength += 25;
+      if (/[!@#$%^&*(),.?":{}|<>]/.test(pass))   strength += 25;
 
-      bar.style.width = strength + "%";
+      bar.style.width      = strength + "%";
       bar.style.background = strength < 50 ? "red" : strength < 75 ? "orange" : "lime";
 
       passwordValid = lengthOk && specialOk;
     });
 
-    // Profil kurulumunu tamamla
     setupBtn.onclick = async () => {
       const nickname = nicknameInput.value.trim();
       const password = passwordInput.value.trim();
@@ -107,7 +123,7 @@
         return;
       }
 
-      if (!password || !passwordValid) {
+      if (password && !passwordValid) {
         errorEl.innerText = "Şifre min. 8 karakter ve özel karakter içermeli!";
         return;
       }
@@ -118,26 +134,29 @@
       }
 
       try {
-        setupBtn.disabled = true;
-        setupBtn.innerText = "Ayarlanıyor...";
+        setupBtn.disabled  = true;
+        setupBtn.innerText = "Kaydediliyor...";
 
-        // Şifreyi belirle
-        await updatePassword(currentUser, password);
+        // Şifre girilmişse güncelle
+        if (password) {
+          await updatePassword(currentUser, password);
+        }
 
-        // Firestore'da şifre belirlenmiş olarak işaretle
+        // Firestore'u güncelle
         await updateDoc(doc(db, "users", currentUser.uid), {
+          nickname:    nickname,
+          email:       currentUser.email,
           passwordSet: true
         });
 
-        // localStorage'a kaydı güncelle
-        localStorage.setItem("email", currentUser.email);
+        // localStorage'a kaydet
+        localStorage.setItem("email",    currentUser.email);
         localStorage.setItem("nickname", nickname);
 
-        // Ana sayfaya yönlendir
         window.location.replace("index.html");
 
       } catch (e) {
-        console.error("Hata:", e);
+        console.error("Setup hatası:", e);
         if (e.code === "auth/weak-password") {
           errorEl.innerText = "Şifre çok zayıf!";
         } else if (e.code === "auth/requires-recent-login") {
@@ -145,13 +164,11 @@
         } else {
           errorEl.innerText = "Hata: " + e.message;
         }
-        setupBtn.disabled = false;
-        setupBtn.innerText = "Profil Kurulumunu Tamamla";
+        setupBtn.disabled  = false;
+        setupBtn.innerText = "Devam Et";
       }
     };
-
   </script>
   
 </body>
-
 </html>
